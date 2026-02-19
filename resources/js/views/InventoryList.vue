@@ -185,12 +185,11 @@ const getStockStatusClass = (product) => {
 
 const getUnitLabel = (unit) => {
     const units = {
-        'u': 'Units (u)',
-        'kg': 'Kilogram (kg)',
-        'm': 'Meter (m)',
-        'l': 'Liter (l)',
-        'box': 'Box',
-        'pcs': 'Units (u)' // Legacy support
+        'pcs': 'Units (Pcs)',
+        'kg': 'Kilogram (Kg)',
+        'm': 'Meter (M)',
+        'l': 'Liter (L)',
+        'box': 'Box' 
     };
     return units[unit] || unit;
 };

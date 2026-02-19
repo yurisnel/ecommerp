@@ -22,6 +22,7 @@ class CategoryController extends BaseController
             'slug' => 'required|string|max:100|unique:categories,slug,' . $id,
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:categories,id',
+            'image' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive',
         ]);
     }

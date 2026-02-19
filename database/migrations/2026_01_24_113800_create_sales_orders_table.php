@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('customer_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('sales_channel_id')->constrained()->onDelete('cascade');
             $table->foreignId('warehouse_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
             $table->decimal('subtotal', 12, 2);
             $table->decimal('tax', 10, 2)->default(0);
             $table->decimal('discount', 10, 2)->default(0);

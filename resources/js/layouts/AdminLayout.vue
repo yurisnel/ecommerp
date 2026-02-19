@@ -18,7 +18,7 @@
                     <li class="px-4 pt-4 pb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Catalog & Inventory</li>
                     <li>
                         <router-link to="/admin/inventory" class="flex items-center px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white rounded-md group transition-colors">
-                            <span class="mr-3">🏭</span> Inventory Dashboard
+                            <span class="mr-3">🏭</span> Products
                         </router-link>
                     </li>
                     <li>

@@ -45,16 +45,14 @@
             </template>
 
             <template #status="{ item }">
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border"
-                    :class="{
-                        'bg-yellow-50 text-yellow-700 border-yellow-100': item.status === 'pending',
-                        'bg-blue-50 text-blue-700 border-blue-100': item.status === 'processing',
-                        'bg-emerald-50 text-emerald-700 border-emerald-100': item.status === 'completed',
-                        'bg-rose-50 text-rose-700 border-rose-100': item.status === 'cancelled'
-                    }"
+                <span 
+                    v-if="item.order_status"
+                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border text-white"
+                    :style="{ backgroundColor: item.order_status.color, borderColor: item.order_status.color }"
                 >
-                    {{ item.status }}
+                    {{ item.order_status.name }}
                 </span>
+                <span v-else class="text-gray-400 text-[10px]">No status</span>
             </template>
 
             <template #total="{ item }">

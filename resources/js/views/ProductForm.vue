@@ -93,10 +93,10 @@
                                 v-model="form.unit" 
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             >
-                                <option value="u">Units (u)</option>
-                                <option value="kg">Kilogram (kg)</option>
-                                <option value="m">Meter (m)</option>
-                                <option value="l">Liter (l)</option>
+                                <option value="pcs">Units (Pcs)</option>
+                                <option value="kg">Kilogram (Kg)</option>
+                                <option value="m">Meter (M)</option>
+                                <option value="l">Liter (L)</option>
                                 <option value="box">Box</option>
                             </select>
                         </div>
@@ -255,10 +255,16 @@
                     <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Product Images</h3>
                     
                     <div class="space-y-4">
-                        <!-- Upload Area -->
+                        <!-- Upload Area with Drag & Drop -->
                         <div 
                             @click="triggerFileUpload"
-                            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all group"
+                            @drop.prevent="handleDrop"
+                            @dragover.prevent="isDraggingFiles = true"
+                            @dragleave.prevent="isDraggingFiles = false"
+                            class="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all group"
+                            :class="isDraggingFiles 
+                                ? 'border-indigo-500 bg-indigo-50' 
+                                : 'border-gray-300 hover:border-indigo-500 hover:bg-indigo-50'"
                         >
                             <input 
                                 type="file" 
@@ -271,59 +277,65 @@
                             <div class="flex flex-col items-center">
                                 <template v-if="!uploading">
                                     <div class="p-3 bg-indigo-50 rounded-full text-indigo-600 group-hover:scale-110 transition-transform mb-3">
-                                        <PlusIcon class="h-6 w-6" />
+                                        <i class="fas fa-cloud-upload-alt text-2xl"></i>
                                     </div>
-                                    <p class="text-sm font-medium text-gray-900">Click to upload images</p>
-                                    <p class="text-xs text-gray-500 mt-1">PNG, JPG, WEBP up to 2MB</p>
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{ isDraggingFiles ? 'Drop images here' : 'Click to upload or drag & drop' }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1">PNG, JPG, WEBP up to 2MB each. Multiple files supported.</p>
                                 </template>
                                 <template v-else>
                                     <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
-                                    <p class="text-sm font-medium text-indigo-600">Uploading...</p>
+                                    <p class="text-sm font-medium text-indigo-600">Uploading images...</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ uploadProgress }}</p>
                                 </template>
                             </div>
                         </div>
 
-                        <!-- Image List -->
-                        <div v-if="form.product_images && form.product_images.length > 0" class="space-y-3">
-                            <div 
-                                v-for="(img, index) in form.product_images" 
-                                :key="index"
-                                class="flex items-center gap-3 p-2 border border-gray-100 rounded-lg hover:bg-gray-50 group"
-                                :class="{ 'ring-2 ring-indigo-500 bg-indigo-50': img.is_default }"
-                            >
-                                <div class="h-12 w-12 rounded overflow-hidden bg-gray-200 flex-shrink-0">
-                                    <img :src="img.url" class="h-full w-full object-cover" alt="Product">
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm text-gray-600 truncate">{{ img.url }}</p>
-                                    <p v-if="img.is_default" class="text-xs text-indigo-600 font-medium">Default Image</p>
-                                </div>
-                                <div class="flex gap-1">
-                                    <button 
-                                        type="button"
-                                        @click="setDefaultImage(img.url)"
-                                        class="p-1 text-gray-400 hover:text-yellow-500 transition-colors"
-                                        title="Set as Default"
-                                    >
-                                        <StarIcon class="h-5 w-5" :class="{ 'text-yellow-500': img.is_default }" />
-                                    </button>
-                                    <button 
-                                        type="button"
-                                        @click="removeImage(index)"
-                                        class="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                        title="Remove"
-                                    >
-                                        <TrashIcon class="h-5 w-5" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Image Gallery Component -->
+                        <ImageGallery 
+                            :images="form.product_images"
+                            @set-default="setDefaultImage"
+                            @delete="removeImage"
+                            @view="viewImage"
+                            @edit="editImage"
+                            @reorder="reorderImages"
+                            empty-message="No images added yet. Drag and drop or click above to add images."
+                        />
 
-                        <div v-else class="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center text-gray-400">
-                            <p class="text-sm">No images added yet.</p>
+                        <!-- Image Options -->
+                        <div class="space-y-3 border-t pt-4">
+                            <div class="flex items-center gap-3">
+                                <input 
+                                    v-model="autoCompress"
+                                    type="checkbox"
+                                    class="w-4 h-4 text-indigo-600"
+                                >
+                                <label class="text-sm text-gray-700">Automatically compress images (recommended)</label>
+                            </div>
+                            <div v-if="autoCompress" class="flex items-center gap-3 ml-7">
+                                <label class="text-sm text-gray-700">Compression quality:</label>
+                                <input 
+                                    v-model.number="compressionQuality"
+                                    type="range"
+                                    min="50"
+                                    max="100"
+                                    step="5"
+                                    class="w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                >
+                                <span class="text-sm font-medium text-indigo-600 w-12">{{ compressionQuality }}%</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Image Cropper Modal -->
+                <ImageCropper 
+                    v-if="showCropper"
+                    :imageUrl="croppingImage"
+                    @close="showCropper = false"
+                    @crop="applyCrop"
+                />
             </div>
         </div>
     </div>
@@ -365,6 +377,8 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 // Components for tabs
 import ProductEntryHistory from './ProductEntryHistory.vue';
 import StockMovementLog from './StockMovementLog.vue';
+import ImageGallery from '../components/ImageGallery.vue';
+import ImageCropper from '../components/ImageCropper.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -372,12 +386,23 @@ const router = useRouter();
 const isEditing = computed(() => route.params.id !== undefined);
 const submitting = ref(false);
 const uploading = ref(false);
+const isDraggingFiles = ref(false);
+const uploadProgress = ref('');
 const fileInput = ref(null);
 const categories = ref([]);
 const errors = ref({});
 const newImageUrl = ref('');
 const showHtml = ref(false);
 const product_id = computed(() => route.params.id);
+
+// Image cropper
+const showCropper = ref(false);
+const croppingImage = ref('');
+const croppingImageIndex = ref(null);
+
+// Image options
+const autoCompress = ref(true);
+const compressionQuality = ref(85);
 
 const activeTab = ref('general');
 const tabs = [
@@ -413,17 +438,38 @@ const triggerFileUpload = () => {
     fileInput.value.click();
 };
 
+const handleDrop = async (event) => {
+    isDraggingFiles.value = false;
+    const files = event.dataTransfer.files;
+    if (!files || files.length === 0) return;
+
+    // Similar to handleFileUpload
+    const fileList = new DataTransfer();
+    for (let file of files) {
+        fileList.items.add(file);
+    }
+    fileInput.value.files = fileList.files;
+    
+    await handleFileUpload({ target: { files: fileList.files } });
+};
+
 const handleFileUpload = async (event) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     uploading.value = true;
+    let successCount = 0;
     
     try {
         for (let i = 0; i < files.length; i++) {
+            uploadProgress.value = `${i + 1} of ${files.length}`;
+            
             const formData = new FormData();
             formData.append('file', files[i]);
             formData.append('folder', 'products');
+            // Convert boolean to string that server can parse
+            formData.append('compress', autoCompress.value ? '1' : '0');
+            formData.append('quality', String(compressionQuality.value));
 
             const response = await api.post('/upload', formData, {
                 headers: {
@@ -439,15 +485,22 @@ const handleFileUpload = async (event) => {
                 
                 form.product_images.push({
                     url: url,
-                    is_default: isDefault
+                    is_default: isDefault,
+                    sort_order: form.product_images.length
                 });
+                successCount++;
             }
+        }
+        
+        if (successCount > 0) {
+            uploadProgress.value = `${successCount} image${successCount > 1 ? 's' : ''} uploaded successfully`;
         }
     } catch (error) {
         console.error('Upload failed:', error);
         alert('Some images failed to upload. Please try again.');
     } finally {
         uploading.value = false;
+        uploadProgress.value = '';
         // Reset file input
         event.target.value = '';
     }
@@ -457,16 +510,15 @@ const addImage = () => {
     if (!newImageUrl.value) return;
     
     // Initialize images if it's not an array (just safety)
-    if (!Array.isArray(form.images)) {
-        form.images = [];
+    if (!Array.isArray(form.product_images)) {
+        form.product_images = [];
     }
 
-    form.images.push(newImageUrl.value);
-    
-    // Set as default if it's the first image
-    if (form.images.length === 1 || !form.image) {
-        form.image = newImageUrl.value;
-    }
+    const isDefault = form.product_images.length === 0;
+    form.product_images.push({
+        url: newImageUrl.value,
+        is_default: isDefault
+    });
     
     newImageUrl.value = '';
 };
@@ -481,9 +533,69 @@ const removeImage = (index) => {
     }
 };
 
-const setDefaultImage = (url) => {
-    form.product_images.forEach(img => {
-        img.is_default = (img.url === url);
+const setDefaultImage = (index) => {
+    form.product_images.forEach((img, i) => {
+        img.is_default = (i === index);
+    });
+};
+
+const viewImage = (url) => {
+    // Image preview is handled in ImageGallery component
+    window.open(url, '_blank');
+};
+
+const editImage = (index) => {
+    if (form.product_images[index]) {
+        croppingImageIndex.value = index;
+        croppingImage.value = form.product_images[index].url;
+        showCropper.value = true;
+    }
+};
+
+const applyCrop = async (cropData) => {
+    if (croppingImageIndex.value !== null) {
+        // Convert base64 to blob and upload
+        const blob = await fetch(cropData.dataUrl).then(res => res.blob());
+        const formData = new FormData();
+        formData.append('file', blob, 'cropped-image.jpg');
+        formData.append('folder', 'products');
+        formData.append('quality', String(cropData.quality));
+        formData.append('compress', '0'); // Already cropped, no need to compress again
+
+        try {
+            uploading.value = true;
+            const response = await api.post('/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            if (response.data.success) {
+                // Replace the cropped image
+                form.product_images[croppingImageIndex.value].url = response.data.url;
+            }
+        } catch (error) {
+            console.error('Error uploading cropped image:', error);
+            alert('Failed to save cropped image');
+        } finally {
+            uploading.value = false;
+            showCropper.value = false;
+            croppingImageIndex.value = null;
+            croppingImage.value = '';
+        }
+    }
+};
+
+const reorderImages = (reorderData) => {
+    const { fromIndex, toIndex } = reorderData;
+    
+    // Move image in array
+    const [movedImage] = form.product_images.splice(fromIndex, 1);
+    form.product_images.splice(toIndex, 0, movedImage);
+    
+    // Update sort_order
+    form.product_images.forEach((img, index) => {
+        img.sort_order = index;
     });
 };
 
@@ -545,7 +657,7 @@ const submit = async () => {
         } else {
             await api.post('/products', form);
         }
-        router.push({ name: 'Products' });
+        router.push({ name: 'Inventory' });
     } catch (error) {
         if (error.response && error.response.status === 422) {
             if (error.response.data.errors) {

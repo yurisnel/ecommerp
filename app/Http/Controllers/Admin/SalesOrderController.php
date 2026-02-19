@@ -7,6 +7,8 @@ use App\Services\SalesOrderService;
 use App\Services\SalesService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Models\OrderStatus;
+use App\Models\OrderStatusHistory;
 
 class SalesOrderController extends BaseController
 {
@@ -44,7 +46,7 @@ class SalesOrderController extends BaseController
      */
     public function show(int $id): JsonResponse
     {
-        $relations = ['customer', 'salesChannel', 'warehouse', 'items.product', 'items.productEntry'];
+        $relations = ['customer', 'salesChannel', 'warehouse', 'items.product', 'items.productEntry', 'statusHistories.status', 'statusHistories.changer'];
         $order = $this->service->getById($id, $relations);
 
         if (!$order) {
@@ -112,7 +114,7 @@ class SalesOrderController extends BaseController
             'billing_address_id' => 'nullable|exists:customer_addresses,id',
             'shipping_method_id' => 'nullable|exists:shipping_methods,id',
             'discount_rule_id' => 'nullable|exists:discount_rules,id',
-            'status' => 'nullable|in:pending,confirmed,processing,shipped,delivered,cancelled',
+            'order_status_id' => 'required|numeric',
             'tax' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'shipping' => 'nullable|numeric|min:0',
@@ -128,5 +130,47 @@ class SalesOrderController extends BaseController
             'items.*.discount' => 'nullable|numeric|min:0',
             'items.*.tax' => 'nullable|numeric|min:0',
         ]);
+    }
+
+    /**
+     * Update an order and record status history when changed
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $validated = $this->validateRequest($request, $id);
+
+        $order = $this->service->getById($id);
+        if (!$order) {
+            return $this->errorResponse('Order not found', 404);
+        }
+
+        $oldStatus = $order->status;
+
+        $result = $this->service->update($id, $validated);
+
+        if (!$result) {
+            return $this->errorResponse('Order not found', 404);
+        }
+
+        $order = $this->service->getById($id);
+
+        // If status changed, log history
+        if (isset($validated['status']) && $validated['status'] !== $oldStatus) {
+            try {
+                $statusModel = OrderStatus::where('slug', $validated['status'])->first();
+                if ($statusModel) {
+                    OrderStatusHistory::create([
+                        'sales_order_id' => $order->id,
+                        'order_status_id' => $statusModel->id,
+                        'changed_by' => auth()->id(),
+                        'changed_at' => now(),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // ignore logging failures
+            }
+        }
+
+        return $this->successResponse($order, 'Order updated successfully');
     }
 }

@@ -18,32 +18,7 @@ return new class extends Migration
             $table->boolean('is_default')->default(false);
             $table->integer('sort_order')->default(0);
             $table->timestamps();
-        });
-
-        // Migrate existing data from products table to product_images table
-        $products = \Illuminate\Support\Facades\DB::table('products')->get();
-        foreach ($products as $product) {
-            if ($product->images) {
-                $images = json_decode($product->images, true);
-                if (is_array($images)) {
-                    foreach ($images as $index => $imageUrl) {
-                        \Illuminate\Support\Facades\DB::table('product_images')->insert([
-                            'product_id' => $product->id,
-                            'url' => $imageUrl,
-                            'is_default' => ($imageUrl === $product->image),
-                            'sort_order' => $index,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
-                }
-            }
-        }
-
-        // Optional: Remove columns from products table
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn(['image', 'images']);
-        });
+        });        
     }
 
     /**

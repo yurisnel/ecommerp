@@ -7,12 +7,14 @@
                 <p class="text-gray-500 text-sm mt-1">Create and manage customer purchase orders.</p>
             </div>
             <div class="flex gap-3">
-                <button 
-                    @click="$router.push({ name: 'Orders' })" 
-                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                    Back to List
-                </button>
+               
+                <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select v-model="form.order_status_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option :value="null">Select status...</option>
+                                <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                            </select>
+                        </div>
                 <button 
                     v-if="!isEditing"
                     @click="submit" 
@@ -24,20 +26,28 @@
                 </button>
                 <template v-else>
                      <button 
-                        v-if="form.status === 'pending'"
+                        v-if="currentStatus?.slug === 'pending'"
                         @click="confirmOrder" 
                         class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
                     >
                         Confirm Order
                     </button>
                     <button 
-                        v-if="form.status !== 'cancelled' && form.status !== 'completed'"
+                        v-if="currentStatus?.slug !== 'cancelled' && currentStatus?.slug !== 'confirmed'"
                         @click="cancelOrder" 
                         class="bg-rose-600 text-white px-4 py-2 rounded-lg hover:bg-rose-700 transition-colors"
                     >
                         Cancel Order
                     </button>
                 </template>
+
+                 <button 
+                    @click="$router.push({ name: 'Orders' })" 
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                    Back to List
+                </button>
+                
             </div>
         </div>
 
@@ -269,7 +279,7 @@
                         rows="3"
                         placeholder="Add any additional details or customer instructions..."
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        :disabled="isEditing && form.status !== 'pending'"
+                        :disabled="isEditing && currentStatus?.slug !== 'pending'"
                     ></textarea>
                 </div>
             </div>
@@ -346,20 +356,34 @@
                     <div class="space-y-4 text-sm relative z-10">
                         <div class="flex justify-between items-center">
                             <span class="text-gray-500">Current Status</span>
-                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase border-2 shadow-sm"
-                                :class="{
-                                    'bg-yellow-50 text-yellow-700 border-yellow-200': form.status === 'pending',
-                                    'bg-blue-50 text-blue-700 border-blue-200': form.status === 'processing',
-                                    'bg-emerald-50 text-emerald-700 border-emerald-200': form.status === 'completed',
-                                    'bg-rose-50 text-rose-700 border-rose-200': form.status === 'cancelled'
-                                }"
+                            <span 
+                                v-if="currentStatus"
+                                class="px-3 py-1 rounded-full text-[10px] font-black uppercase border-2 shadow-sm text-white"
+                                :style="{ backgroundColor: currentStatus.color, borderColor: currentStatus.color }"
                             >
-                                {{ form.status }}
+                                {{ currentStatus.name }}
                             </span>
+                            <span v-else class="text-gray-400 text-sm">No status assigned</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-500">Processed On</span>
                             <span class="font-bold text-gray-700">{{ formatDate(form.created_at) }}</span>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-xs font-bold text-gray-700 mb-2">Status History</h4>
+                            <ul class="divide-y divide-gray-100 text-sm">
+                                <li v-if="!form.status_histories || form.status_histories.length === 0" class="py-2 text-gray-400 italic">No history yet.</li>
+                                <li v-for="h in form.status_histories" :key="h.id" class="py-2 flex justify-between items-start">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span v-if="h.status?.color" class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: h.status.color }"></span>
+                                            <span class="font-medium">{{ h.status?.name || 'Unknown' }}</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500">By: {{ h.changer?.name || 'System' }}</div>
+                                    </div>
+                                    <div class="text-xs text-gray-500">{{ formatDate(h.changed_at) }}</div>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -392,6 +416,7 @@ const submitting = ref(false);
 const customers = ref([]);
 const channels = ref([]);
 const warehouses = ref([]);
+const statuses = ref([]);
 const selectedCustomer = ref(null);
 const customerQuery = ref('');
 
@@ -407,7 +432,7 @@ const form = reactive({
     customer_id: null,
     sales_channel_id: null,
     warehouse_id: null,
-    status: 'pending',
+    order_status_id: null,
     tax: 0,
     discount: 0,
     shipping: 0,
@@ -424,6 +449,11 @@ watch(selectedCustomer, (val) => {
 
 const isValidOrder = computed(() => {
     return form.customer_id && form.sales_channel_id && form.warehouse_id && form.items.length > 0;
+});
+
+// Get current status object
+const currentStatus = computed(() => {
+    return statuses.value.find(s => s.id === form.order_status_id) || null;
 });
 
 // Totals calculation
@@ -503,13 +533,15 @@ const removeItem = (index) => {
 const fetchInitialData = async () => {
     try {
         // Fetch channels and warehouses first
-        const [chanRes, whRes] = await Promise.all([
+        const [chanRes, whRes, statusRes] = await Promise.all([
             api.get('/sales-channels', { params: { per_page: -1 } }),
-            api.get('/warehouses', { params: { per_page: -1 } })
+            api.get('/warehouses', { params: { per_page: -1 } }),
+            api.get('/order-statuses', { params: { per_page: -1 } }),
         ]);
         
         channels.value = chanRes.data.data;
         warehouses.value = whRes.data.data;
+        statuses.value = statusRes.data.data;
         
         if (channels.value.length > 0) form.sales_channel_id = channels.value[0].id;
         // if (warehouses.value.length > 0) form.warehouse_id = warehouses.value[0].id; // Don't pre-set warehouse
@@ -531,7 +563,7 @@ const fetchOrder = async () => {
             customer_id: order.customer_id,
             sales_channel_id: order.sales_channel_id,
             warehouse_id: order.warehouse_id,
-            status: order.status,
+            order_status_id: order.order_status_id,
             tax: Number(order.tax),
             discount: Number(order.discount),
             shipping: Number(order.shipping),
@@ -564,7 +596,11 @@ const fetchOrder = async () => {
 const submit = async () => {
     submitting.value = true;
     try {
-        await api.post('/orders', form);
+        if (isEditing.value) {
+            await api.put(`/orders/${route.params.id}`, form);
+        } else {
+            await api.post('/orders', form);
+        }
         router.push({ name: 'Orders' });
     } catch (error) {
         alert(error.response?.data?.message || 'Failed to create order');

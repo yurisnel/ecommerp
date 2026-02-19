@@ -17,6 +17,8 @@ import SupplierList from '../views/SupplierList.vue';
 import SupplierForm from '../views/SupplierForm.vue';
 import CustomerForm from '../views/CustomerForm.vue';
 import OrderForm from '../views/OrderForm.vue';
+import OrderStatusList from '../views/OrderStatusList.vue';
+import OrderStatusForm from '../views/OrderStatusForm.vue';
 
 const routes = [
     {
@@ -39,6 +41,9 @@ const routes = [
             { path: 'orders', name: 'Orders', component: OrderList },
             { path: 'orders/create', name: 'OrderCreate', component: OrderForm },
             { path: 'orders/:id', name: 'OrderView', component: OrderForm },
+            { path: 'order-statuses', name: 'OrderStatuses', component: OrderStatusList },
+            { path: 'order-statuses/create', name: 'OrderStatusCreate', component: OrderStatusForm },
+            { path: 'order-statuses/:id/edit', name: 'OrderStatusEdit', component: OrderStatusForm },
             { path: 'customers', name: 'Customers', component: CustomerList },
             { path: 'customers/create', name: 'CustomerCreate', component: CustomerForm },
             { path: 'customers/:id/edit', name: 'CustomerEdit', component: CustomerForm },

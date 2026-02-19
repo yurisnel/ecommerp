@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Services\InventoryService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -20,28 +21,17 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             SalesChannelSeeder::class,
             CustomerGroupSeeder::class,
+            CategorySeeder::class,
             PaymentMethodSeeder::class,
-            ShippingMethodSeeder::class,
+            ShippingMethodSeeder::class,          
+            SupplierSeeder::class,
+            OrderStatusSeeder::class,
         ]);
 
         // Dynamic Data
         \App\Models\Warehouse::factory(3)->create();
         
-        // Products and Inventory
-        $products = \App\Models\Product::factory(50)->create()->each(function ($product) {
-            // Create initial inventory for each product
-            \App\Models\ProductEntry::create([
-                'entry_number' => 'ENT-' . uniqid(),
-                'product_id' => $product->id,
-                'warehouse_id' => \App\Models\Warehouse::inRandomOrder()->first()->id,
-                'quantity' => $qty = rand(10, 100),
-                'cost_per_unit' => $cost = rand(10, 100),
-                'selling_price' => $product->price ?? rand(20, 200),
-                'total_cost' => $qty * $cost,
-                'entry_date' => now(),
-            ]);
-        });
-
+        \App\Models\Product::factory(50)->create();
         // Customers
         // Customers with Addresses
         \App\Models\Customer::factory(20)->create()->each(function ($customer) {

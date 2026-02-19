@@ -88,6 +88,24 @@
                 </button>
             </template>
 
+            <template #image="{ item }">
+                <div v-if="item.images && item.images.length > 0" class="relative group">
+                    <img 
+                        :src="getDefaultImage(item.images)" 
+                        :alt="item.name"
+                        class="h-12 w-12 rounded object-cover border border-gray-200 group-hover:opacity-75 transition-opacity cursor-pointer"
+                        @click="previewGallery(item)"
+                        @error="onImageError"
+                    >
+                    <div v-if="item.images.length > 1" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                        {{ item.images.length }}
+                    </div>
+                </div>
+                <div v-else class="h-12 w-12 rounded bg-gray-200 flex items-center justify-center border border-gray-200">
+                    <i class="fas fa-image text-gray-400"></i>
+                </div>
+            </template>
+
             <template #categories="{ item }">
                 <div v-if="item.categories && item.categories.length > 0" class="flex flex-wrap gap-1">
                     <span 
@@ -135,12 +153,43 @@
                 <button class="text-red-600 hover:text-red-900">Delete</button>
             </template>
         </DataTable>
+
+        <!-- Image Gallery Modal -->
+        <Teleport to="body" v-if="showGalleryModal && selectedProductForGallery">
+            <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" @click="showGalleryModal = false">
+                <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-screen overflow-y-auto" @click.stop>
+                    <!-- Header -->
+                    <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">{{ selectedProductForGallery.name }}</h2>
+                            <p class="text-sm text-gray-500 mt-1">SKU: {{ selectedProductForGallery.sku }}</p>
+                        </div>
+                        <button 
+                            @click="showGalleryModal = false"
+                            class="text-gray-400 hover:text-gray-600"
+                        >
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Gallery -->
+                    <div class="p-6">
+                        <ImageGallery 
+                            :images="selectedProductForGallery.images || []"
+                            :readonly="true"
+                            empty-message="This product has no images"
+                        />
+                    </div>
+                </div>
+            </div>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import DataTable from '../components/DataTable.vue';
+import ImageGallery from '../components/ImageGallery.vue';
 import api from '../axios';
 import {
     Listbox,
@@ -155,8 +204,11 @@ const items = ref([]);
 const pagination = ref({});
 const categories = ref([]);
 const selectedCategories = ref([]);
+const selectedProductForGallery = ref(null);
+const showGalleryModal = ref(false);
 
 const columns = [
+    { key: 'image', label: 'Image' },
     { key: 'sku', label: 'SKU' },
     { key: 'name', label: 'Product Name' },
     { key: 'categories', label: 'Categories' },
@@ -206,6 +258,20 @@ const fetchData = async (page = 1, query = '') => {
 
 const search = (query) => {
     fetchData(1, query);
+};
+
+const getDefaultImage = (images) => {
+    const defaultImg = images.find(img => img.is_default);
+    return defaultImg ? defaultImg.url : (images.length > 0 ? images[0].url : '');
+};
+
+const onImageError = (event) => {
+    event.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23d1d5db%22%3E%3Cpath d=%22M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z%22/%3E%3C/svg%3E';
+};
+
+const previewGallery = (product) => {
+    selectedProductForGallery.value = product;
+    showGalleryModal.value = true;
 };
 
 // Re-fetch when categories change

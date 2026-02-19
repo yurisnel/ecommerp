@@ -65,6 +65,47 @@
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             ></textarea>
                         </div>
+
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Category Image</label>
+                            <div class="space-y-3">
+                                <!-- Image Preview -->
+                                <div v-if="imagePreview" class="relative">
+                                    <img :src="imagePreview" :alt="form.name" class="w-full rounded-lg border border-gray-300 object-cover h-48">
+                                    <button 
+                                        @click="removeImage"
+                                        type="button"
+                                        class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                                    >
+                                        <i class="fas fa-trash text-sm"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- File Input or URL -->
+                                <div class="flex gap-2">
+                                    <div class="flex-1">
+                                        <input 
+                                            type="file"
+                                            accept="image/*"
+                                            @change="handleImageUpload"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        >
+                                    </div>
+                                    <div class="flex-1">
+                                        <input 
+                                            v-model="form.image"
+                                            type="text"
+                                            placeholder="Or paste image URL"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            @input="updateImagePreview"
+                                        >
+                                    </div>
+                                </div>
+
+                                <p v-if="errors.image" class="text-sm text-red-600">{{ errors.image }}</p>
+                                <p class="text-xs text-gray-500">Upload an image or paste a URL (JPEG, PNG, GIF, max 2MB)</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -140,8 +181,12 @@ const form = reactive({
     slug: '',
     description: '',
     parent_id: null,
+    image: '',
     status: 'active'
 });
+
+const imagePreview = ref(null);
+const isUploadingImage = ref(false);
 
 watch(statusActive, (val) => {
     form.status = val ? 'active' : 'inactive';
@@ -154,6 +199,56 @@ const generateSlug = () => {
             .replace(/[^\w ]+/g, '')
             .replace(/ +/g, '-');
     }
+};
+
+const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Image must be less than 2MB');
+        return;
+    }
+
+    // Create FormData for upload
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'categories');
+
+    isUploadingImage.value = true;
+    try {
+        const response = await api.post('/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        if (response.data.success) {
+            form.image = response.data.url;
+            imagePreview.value = response.data.url;
+        }
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Failed to upload image');
+    } finally {
+        isUploadingImage.value = false;
+    }
+};
+
+const updateImagePreview = () => {
+    if (form.image) {
+        imagePreview.value = form.image;
+    }
+};
+
+const removeImage = () => {
+    form.image = '';
+    imagePreview.value = null;
 };
 
 const fetchAllCategories = async () => {
@@ -177,7 +272,12 @@ const fetchCategory = async () => {
         form.slug = category.slug;
         form.description = category.description;
         form.parent_id = category.parent_id;
+        form.image = category.image || '';
         form.status = category.status;
+        
+        if (form.image) {
+            imagePreview.value = form.image;
+        }
         
         statusActive.value = category.status === 'active';
     } catch (error) {

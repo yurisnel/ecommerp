@@ -3,8 +3,8 @@
         <!-- Header -->
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Inventory Dashboard</h1>
-                <p class="text-gray-500 text-sm mt-1">Monitor stock levels, track movements, and manage product entries.</p>
+                <h1 class="text-2xl font-bold text-gray-900">Product Inventory</h1>
+                <p class="text-gray-500 text-sm mt-1">Manage products, monitor stock levels, track movements, and manage product entries.</p>
             </div>
         </div>
 
@@ -121,7 +121,7 @@ const InventoryOperations = defineAsyncComponent(() => import('./InventoryOperat
 const activeTab = ref('summary');
 
 const tabs = [
-    { id: 'summary', name: 'Stock Levels', icon: TableCellsIcon },
+    { id: 'summary', name: 'Products', icon: TableCellsIcon },
     { id: 'entries', name: 'Purchase Entries', icon: InboxArrowDownIcon },
     { id: 'movements', name: 'Movement Log', icon: ListBulletIcon },
     { id: 'operations', name: 'Operations', icon: AdjustmentsHorizontalIcon },

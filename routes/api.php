@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\UploadController;
 use App\Http\Controllers\Admin\SalesChannelController;
+use App\Http\Controllers\Admin\OrderStatusController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +59,7 @@ Route::prefix('v1')->group(function () {
 
     // Auth & Users
     Route::apiResource('users', UserController::class);
+    Route::apiResource('order-statuses', OrderStatusController::class);
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('permissions', PermissionController::class);
 

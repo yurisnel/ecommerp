@@ -42,7 +42,7 @@ class ProductController extends BaseController
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
             'barcode' => 'nullable|string|max:100|unique:products,barcode,' . $id,
-            'unit' => 'required|string|in:u,kg,m,l,box',
+            'unit' => 'required|string|in:pcs,kg,m,l,box',
             'min_stock' => 'required|numeric|min:0',
             'max_stock' => 'nullable|numeric|min:0',
             'status' => 'required|in:active,inactive,discontinued',

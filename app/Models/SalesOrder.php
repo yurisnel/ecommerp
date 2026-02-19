@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\OrderStatusHistory;
+use App\Models\OrderStatus;
 
 class SalesOrder extends Model
 {
@@ -17,7 +20,7 @@ class SalesOrder extends Model
         'customer_id',
         'sales_channel_id',
         'warehouse_id',
-        'status',
+        'order_status_id',
         'subtotal',
         'tax',
         'discount',
@@ -132,7 +135,7 @@ class SalesOrder extends Model
     public function getTotalPaidAttribute(): float
     {
         return $this->payments()
-            ->where('status', 'completed')
+            ->where('order_status_id', OrderStatus::where('slug', 'confirmed')->first()->id)
             ->sum('amount');
     }
 
@@ -150,5 +153,21 @@ class SalesOrder extends Model
     public function isFullyPaid(): bool
     {
         return $this->remaining_balance <= 0;
+    }
+
+    /**
+     * Get the order status for this order
+     */
+    public function orderStatus(): BelongsTo
+    {
+        return $this->belongsTo(OrderStatus::class);
+    }
+
+    /**
+     * Status history records for this order
+     */
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(OrderStatusHistory::class, 'sales_order_id');
     }
 }

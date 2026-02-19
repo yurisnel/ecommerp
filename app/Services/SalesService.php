@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\Payment;
+use App\Models\OrderStatus;
+use App\Models\OrderStatusHistory;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -50,7 +52,7 @@ class SalesService
                 'customer_id' => $data['customer_id'] ?? null,
                 'sales_channel_id' => $data['sales_channel_id'],
                 'warehouse_id' => $data['warehouse_id'],
-                'status' => $data['status'] ?? 'pending',
+                'order_status_id' => $data['order_status_id'] ?? null,
                 'subtotal' => 0,
                 'tax' => $data['tax'] ?? 0,
                 'discount' => $data['discount'] ?? 0,
@@ -74,6 +76,22 @@ class SalesService
             $order->subtotal = $subtotal;
             $order->total = $subtotal + $order->tax + $order->shipping - $order->discount;
             $order->save();
+
+            // Create initial status history (if matching status exists)
+            try {
+                $statusSlug = $order->status;
+                $statusModel = OrderStatus::where('slug', $statusSlug)->first();
+                if ($statusModel) {
+                    OrderStatusHistory::create([
+                        'sales_order_id' => $order->id,
+                        'order_status_id' => $statusModel->id,
+                        'changed_by' => $order->created_by ?? auth()->id(),
+                        'changed_at' => now(),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Don't break order creation if history logging fails
+            }
 
             DB::commit();
             
@@ -173,8 +191,24 @@ class SalesService
             }
 
             // Update order status
+            $old = $order->status;
             $order->status = 'confirmed';
             $order->save();
+
+            // Log history
+            try {
+                $statusModel = OrderStatus::where('slug', $order->status)->first();
+                if ($statusModel) {
+                    OrderStatusHistory::create([
+                        'sales_order_id' => $order->id,
+                        'order_status_id' => $statusModel->id,
+                        'changed_by' => auth()->id(),
+                        'changed_at' => now(),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // ignore
+            }
 
             DB::commit();
             
@@ -241,8 +275,24 @@ class SalesService
             }
 
             // Update order status
+            $old = $order->status;
             $order->status = 'cancelled';
             $order->save();
+
+            // Log history
+            try {
+                $statusModel = OrderStatus::where('slug', $order->status)->first();
+                if ($statusModel) {
+                    OrderStatusHistory::create([
+                        'sales_order_id' => $order->id,
+                        'order_status_id' => $statusModel->id,
+                        'changed_by' => auth()->id(),
+                        'changed_at' => now(),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // ignore
+            }
 
             DB::commit();
             

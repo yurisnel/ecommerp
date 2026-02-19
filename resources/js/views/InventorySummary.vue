@@ -112,7 +112,7 @@
                         <td class="px-6 py-4 text-right text-amber-600 font-medium">
                             {{ product.total_reserved || 0 }}
                         </td>
-                        <td class="px-6 py-4 text-right space-x-2">
+                        <td class="text-right">
                             <router-link 
                                 :to="{ name: 'ProductEdit', params: { id: product.id } }"
                                 class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors inline-block"

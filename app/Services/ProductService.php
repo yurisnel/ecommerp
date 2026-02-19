@@ -79,20 +79,49 @@ class ProductService extends BaseService
                     $product->categories()->sync($data['categories']);
                 }
 
-                if (isset($data['product_images']) && is_array($data['product_images'])) {
-                    // Simple approach: delete all and re-create to maintain order and sync
-                    $product->images()->delete();
-                    foreach ($data['product_images'] as $index => $imgData) {
-                        $product->images()->create([
-                            'url' => $imgData['url'],
-                            'is_default' => $imgData['is_default'] ?? false,
-                            'sort_order' => $index
-                        ]);
-                    }
-                }
+                $this->syncImages($product, $data);
             }
 
             return $result;
         });
+    }
+
+    public function syncImages($product, $data): void
+    {
+        if (!empty($data['product_images']) && is_array($data['product_images'])) {
+
+            // Imágenes actuales del producto indexadas por URL
+            $existingImages = $product->images()->get()->keyBy('url');
+
+            foreach ($data['product_images'] as $index => $imgData) {
+
+                $url = $imgData['url'];
+
+                if ($existingImages->has($url)) {
+                    // Ya existe → actualizar datos si hace falta
+                    $existingImages[$url]->update([
+                        'is_default' => $imgData['is_default'] ?? false,
+                        'sort_order' => $index
+                    ]);
+                } else {
+                    // No existe → crear nueva
+                    $product->images()->create([
+                        'url' => $url,
+                        'is_default' => $imgData['is_default'] ?? false,
+                        'sort_order' => $index
+                    ]);
+                }
+            }
+
+            //Eliminar SOLO las imágenes que ya no vienen en la API
+            $incomingUrls = collect($data['product_images'])->pluck('url')->toArray();
+            $product->images()->whereNotIn('url', $incomingUrls)->delete();
+        }
+        //asegurar solo una imagen por defecto
+        /*$product->images()
+                ->where('is_default', true)
+                ->orderBy('sort_order')
+                ->skip(1)
+                ->update(['is_default' => false]);*/
     }
 }

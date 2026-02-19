@@ -14,6 +14,7 @@ class CategoryFactory extends Factory
             'name' => $name,
             'slug' => Str::slug($name) . '-' . Str::random(5),
             'description' => $this->faker->sentence,
+            'image' => 'categories/placeholder.jpg',
             'status' => 'active',
         ];
     }

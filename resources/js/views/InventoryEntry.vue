@@ -167,7 +167,7 @@
                                 <label class="block text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Quantity *</label>
                                 <div class="relative">
                                     <input v-model.number="form.quantity" type="number" min="0.01" step="0.01" class="w-full px-4 py-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
-                                    <span class="absolute right-4 top-3 text-[10px] font-bold text-gray-400 uppercase">{{ selectedProduct?.unit || 'UNITS' }}</span>
+                                    <span class="absolute right-4 top-3 text-[10px] font-bold text-gray-400 uppercase">{{ selectedProduct?.unit || 'Pcs' }}</span>
                                 </div>
                             </div>
 

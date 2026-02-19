@@ -34,6 +34,7 @@
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Image</th>
                             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
                             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Parent Category</th>
@@ -58,6 +59,18 @@
                             </td>
                         </tr>
                         <tr v-for="category in categories" :key="category.id" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <img 
+                                    v-if="category.image" 
+                                    :src="category.image" 
+                                    :alt="category.name"
+                                    class="h-12 w-12 rounded object-cover border border-gray-200"
+                                    @error="onImageError"
+                                >
+                                <div v-else class="h-12 w-12 rounded bg-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-image text-gray-400"></i>
+                                </div>
+                            </td>
                             <td class="px-6 py-4 font-medium text-gray-900">
                                 {{ category.name }}
                             </td>
@@ -187,6 +200,10 @@ const deleteCategory = async (id) => {
         console.error('Error deleting category:', error);
         alert('Failed to delete category.');
     }
+};
+
+const onImageError = (event) => {
+    event.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23d1d5db%22%3E%3Cpath d=%22M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z%22/%3E%3C/svg%3E';
 };
 
 onMounted(() => {
