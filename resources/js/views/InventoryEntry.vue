@@ -4,7 +4,7 @@
         <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div class="flex items-center gap-4">
                 <button @click="$router.back()" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
-                    <ArrowLeftIcon class="h-6 w-6" />
+                    <Icon icon="mdi:arrow-left" class="h-6 w-6" />
                 </button>
                 <div>
                     <h1 class="text-xl font-bold text-gray-900">{{ isEdit ? 'Edit Purchase Entry' : 'Purchase Stock Entry' }}</h1>
@@ -17,8 +17,8 @@
                     :disabled="submitting || !isValid"
                     class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:grayscale"
                 >
-                    <ArrowPathIcon v-if="submitting" class="h-5 w-5 animate-spin" />
-                    <CheckCircleIcon v-else class="h-5 w-5" />
+                    <Icon v-if="submitting" icon="mdi:refresh" class="h-5 w-5 animate-spin" />
+                    <Icon v-else icon="mdi:check-circle" class="h-5 w-5" />
                     <span>{{ isEdit ? 'Update Entry' : 'Complete Entry' }}</span>
                 </button>
             </div>
@@ -55,7 +55,7 @@
                                         </div>
                                         <TransitionRoot leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
                                             <ComboboxOptions class="absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black/5 focus:outline-none sm:text-sm z-50">
-                                                <div v-if="loadingProducts" class="p-4 text-center"><ArrowPathIcon class="h-5 w-5 animate-spin mx-auto text-gray-400" /></div>
+                                                <div v-if="loadingProducts" class="p-4 text-center"><Icon icon="mdi:refresh" class="h-5 w-5 animate-spin mx-auto text-gray-400" /></div>
                                                 <div v-else-if="productResults.length === 0" class="p-4 text-center text-gray-500">No products found.</div>
                                                 <ComboboxOption v-for="product in productResults" :key="product.id" :value="product" v-slot="{ selected, active }">
                                                     <li class="relative cursor-pointer select-none py-3 pl-10 pr-4" :class="active ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'">
@@ -88,7 +88,7 @@
                                                 placeholder="Search supplier..."
                                             />
                                             <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                                <Icon icon="mdi:chevron-up-down" class="h-5 w-5 text-gray-400" aria-hidden="true" />
                                             </ComboboxButton>
                                         </div>
                                         <TransitionRoot leave="transition ease-in duration-100">
@@ -96,7 +96,7 @@
                                                 <ComboboxOption v-for="s in filteredSuppliers" :key="s.id" :value="s" v-slot="{ selected, active }">
                                                     <li class="relative cursor-pointer select-none py-3 pl-10 pr-4" :class="active ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'">
                                                         <span class="block truncate" :class="{ 'font-bold': selected }">{{ s.name }}</span>
-                                                        <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600"><CheckIcon class="h-5 w-5" /></span>
+                                                        <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600"><Icon icon="mdi:check" class="h-5 w-5" /></span>
                                                     </li>
                                                 </ComboboxOption>
                                             </ComboboxOptions>
@@ -131,7 +131,7 @@
                                                 placeholder="Select..."
                                             />
                                             <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                                <Icon icon="mdi:chevron-up-down" class="h-5 w-5 text-gray-400" aria-hidden="true" />
                                             </ComboboxButton>
                                         </div>
                                         <TransitionRoot leave="transition ease-in duration-100">
@@ -139,7 +139,7 @@
                                                 <ComboboxOption v-for="w in filteredWarehouses" :key="w.id" :value="w" v-slot="{ selected, active }">
                                                     <li class="relative cursor-pointer select-none py-3 pl-10 pr-4" :class="active ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'">
                                                         <span class="block truncate" :class="{ 'font-bold': selected }">{{ w.name }}</span>
-                                                        <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600"><CheckIcon class="h-5 w-5" /></span>
+                                                        <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600"><Icon icon="mdi:check" class="h-5 w-5" /></span>
                                                     </li>
                                                 </ComboboxOption>
                                             </ComboboxOptions>
@@ -204,7 +204,7 @@
                 <!-- Product Preview Card -->
                 <div v-if="detailedProductData || loadingDetails" class="bg-indigo-900 rounded-2xl shadow-xl overflow-hidden text-white transition-all duration-300">
                     <div v-if="loadingDetails" class="p-12 flex flex-col items-center justify-center space-y-4">
-                        <ArrowPathIcon class="h-10 w-10 animate-spin text-indigo-300" />
+                        <Icon icon="mdi:refresh" class="h-10 w-10 animate-spin text-indigo-300" />
                         <p class="text-xs text-indigo-300 animate-pulse">Cargando detalles del producto...</p>
                     </div>
                     <template v-else-if="detailedProductData">
@@ -263,7 +263,7 @@
 
                     <!-- Warning for low margin -->
                     <div v-if="margin < 15 && margin > 0" class="flex gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
-                        <ExclamationTriangleIcon class="h-5 w-5 text-amber-600 shrink-0" />
+                        <Icon icon="mdi:alert-triangle" class="h-5 w-5 text-amber-600 shrink-0" />
                         <p class="text-[11px] text-amber-700 font-medium leading-relaxed">
                             Low margin detected. Verify your selling price to ensure profitability after operational costs.
                         </p>
@@ -287,14 +287,7 @@ import {
     ComboboxOption,
     TransitionRoot,
 } from '@headlessui/vue';
-import { 
-    CheckIcon, 
-    ChevronUpDownIcon, 
-    ArrowLeftIcon, 
-    CheckCircleIcon, 
-    ArrowPathIcon,
-    ExclamationTriangleIcon
-} from '@heroicons/vue/20/solid';
+import { Icon } from '@iconify/vue';
 
 const router = useRouter();
 const route = useRoute();

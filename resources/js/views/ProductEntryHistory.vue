@@ -3,7 +3,7 @@
         <div class="p-4 border-b border-gray-200 flex flex-wrap gap-4 items-center justify-between bg-gray-50/50">
             <div class="relative w-full md:w-64">
                 <span class="absolute left-3 top-2.5 text-gray-400">
-                    <MagnifyingGlassIcon class="h-5 w-5" />
+                    <Icon icon="mdi:magnify" class="h-5 w-5" />
                 </span>
                 <input 
                     v-model="filters.search" 
@@ -19,14 +19,14 @@
                     @click="fetchData(pagination.current_page)" 
                     class="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
                 >
-                    <ArrowPathIcon class="h-5 w-5" :class="{ 'animate-spin': loading }" />
+                    <Icon icon="mdi:refresh" class="h-5 w-5" :class="{ 'animate-spin': loading }" />
                 </button>
 
                 <router-link 
                     :to="{ name: 'InventoryEntry', query: { product_id: productId } }"
                     class="ml-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2 text-sm font-semibold shadow-sm"
                 >
-                    <PlusIcon class="h-4 w-4" />
+                    <Icon icon="mdi:plus" class="h-4 w-4" />
                     <span>New Stock Entry</span>
                 </router-link>
             </div>
@@ -93,14 +93,14 @@
                                 class="text-indigo-600 hover:text-indigo-900 transition-colors"
                                 title="Edit Entry"
                             >
-                                <PencilSquareIcon class="h-5 w-5 inline" />
+                                <Icon icon="mdi:pencil" class="h-5 w-5 inline" />
                             </router-link>
                             <button 
                                 @click="deleteEntry(entry.id)"
                                 class="text-rose-600 hover:text-rose-900 transition-colors"
                                 title="Delete Entry"
                             >
-                                <TrashIcon class="h-5 w-5 inline" />
+                                <Icon icon="mdi:trash-can" class="h-5 w-5 inline" />
                             </button>
                         </td>
                     </tr>

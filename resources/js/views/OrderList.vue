@@ -9,7 +9,7 @@
                 :to="{ name: 'OrderCreate' }"
                 class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
             >
-                <PlusIcon class="h-5 w-5" />
+                <Icon icon="mdi:plus" class="h-5 w-5" />
                 <span>New Order</span>
             </router-link>
         </div>
@@ -66,7 +66,7 @@
                         class="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
                         title="View Details"
                     >
-                        <EyeIcon class="h-5 w-5" />
+                        <Icon icon="mdi:eye" class="h-5 w-5" />
                     </router-link>
                 </div>
             </template>
@@ -78,7 +78,7 @@
 import { ref, onMounted, reactive } from 'vue';
 import api from '../axios';
 import DataTable from '../components/DataTable.vue';
-import { PlusIcon, EyeIcon } from '@heroicons/vue/24/outline';
+import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
 
 const loading = ref(false);

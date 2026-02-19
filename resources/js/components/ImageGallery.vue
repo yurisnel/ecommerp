@@ -34,14 +34,14 @@
                         class="text-white hover:text-slate-200 transition-colors cursor-pointer"
                         title="Set as default"
                     >
-                        <Icon icon="material-symbols:star" class="w-5 h-5" />
+                        <Icon icon="mdi:star" class="w-5 h-5" />
                     </button>
                     <!-- Zoom -->
                     <button 
                         @click="emit('view', image.url)"
                         class="text-white hover:text-slate-200 transition-colors cursor-pointer"
                         title="Zoom">
-                        <Icon icon="material-symbols:zoom-in" class="w-5 h-5" />
+                        <Icon icon="mdi:zoom-in" class="w-5 h-5" />
                     </button>
                     <!-- Crop/Edit -->
                     <button 
@@ -49,7 +49,7 @@
                         class="text-white hover:text-slate-200 transition-colors cursor-pointer"
                         title="Crop/Edit"
                     >
-                        <Icon icon="material-symbols:crop" class="w-5 h-5" />
+                        <Icon icon="mdi:crop" class="w-5 h-5" />
                     </button>
                     <!-- Delete -->
                     <button 
@@ -57,7 +57,7 @@
                         class="text-white hover:text-slate-200 transition-colors cursor-pointer"
                         title="Delete"
                     >
-                        <Icon icon="material-symbols:delete" class="w-5 h-5" />
+                        <Icon icon="mdi:delete" class="w-5 h-5" />
                     </button>
                 </div>
 
@@ -69,7 +69,7 @@
 
         <!-- Empty State -->
         <div v-else class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">
-            <Icon icon="material-symbols:image" class="w-12 h-12 mx-auto text-gray-300 mb-2" />
+            <Icon icon="mdi:image" class="w-12 h-12 mx-auto text-gray-300 mb-2" />
             <p class="text-sm">{{ emptyMessage }}</p>
         </div>
 
@@ -82,7 +82,7 @@
                         @click="previewImage = null"
                         class="absolute top-2 right-2 bg-gray-800 text-white rounded-full p-2 hover:bg-gray-900"
                     >
-                        <Icon icon="material-symbols:close" class="w-5 h-5" />
+                        <Icon icon="mdi:close" class="w-5 h-5" />
                     </button>
                 </div>
             </div>

@@ -3,7 +3,7 @@
         <div class="p-4 border-b border-gray-200 flex flex-wrap gap-4 items-center justify-between bg-gray-50/50">
             <div class="relative w-full md:w-64">
                 <span class="absolute left-3 top-2.5 text-gray-400">
-                    <MagnifyingGlassIcon class="h-5 w-5" />
+                    <Icon icon="mdi:magnify" class="h-5 w-5" />
                 </span>
                 <input 
                     v-model="filters.search" 
@@ -31,7 +31,7 @@
                     @click="fetchData(1)" 
                     class="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
                 >
-                    <ArrowPathIcon class="h-5 w-5" :class="{ 'animate-spin': loading }" />
+                    <Icon icon="mdi:refresh" class="h-5 w-5" :class="{ 'animate-spin': loading }" />
                 </button>
             </div>
         </div>
@@ -136,7 +136,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
+import { Icon } from '@iconify/vue';
 import api from '../axios';
 import { debounce } from 'lodash';
 

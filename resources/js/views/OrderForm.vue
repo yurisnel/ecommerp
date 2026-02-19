@@ -57,7 +57,7 @@
                 <!-- Customer & Source Selection -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                        <UserIcon class="h-5 w-5 text-gray-400" />
+                        <Icon icon="mdi:account" class="h-5 w-5 text-gray-400" />
                         Customer Information
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -74,7 +74,7 @@
                                             placeholder="Search customer..."
                                         />
                                         <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-2">
-                                            <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                            <Icon icon="mdi:chevron-up-down" class="h-5 w-5 text-gray-400" aria-hidden="true" />
                                         </ComboboxButton>
                                     </div>
                                     <TransitionRoot leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
@@ -95,7 +95,7 @@
                                                         {{ person.name }} ({{ person.customer_number }})
                                                     </span>
                                                     <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3" :class="{'text-white': active, 'text-teal-600': !active}">
-                                                        <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                                                        <Icon icon="mdi:check" class="h-5 w-5" aria-hidden="true" />
                                                     </span>
                                                 </li>
                                             </ComboboxOption>
@@ -263,7 +263,7 @@
                                 </td>
                                 <td v-if="!isEditing" class="px-4 py-4 text-center">
                                     <button @click="removeItem(index)" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
-                                        <TrashIcon class="h-5 w-5" />
+                                        <Icon icon="mdi:trash-can" class="h-5 w-5" />
                                     </button>
                                 </td>
                             </tr>
@@ -396,7 +396,7 @@
 import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../axios';
-import { UserIcon, TrashIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/vue/24/outline';
+import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
 import {
     Combobox,

@@ -17,7 +17,7 @@
                         <h3 class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total_products }}</h3>
                     </div>
                     <div class="bg-blue-50 p-2 rounded-lg">
-                        <CubeIcon class="h-6 w-6 text-blue-600" />
+                        <Icon icon="mdi:package-variant" class="h-6 w-6 text-blue-600" />
                     </div>
                 </div>
             </div>
@@ -28,7 +28,7 @@
                         <h3 class="text-2xl font-bold text-red-600 mt-1">{{ stats.low_stock }}</h3>
                     </div>
                     <div class="bg-red-50 p-2 rounded-lg">
-                        <ExclamationTriangleIcon class="h-6 w-6 text-red-600" />
+                        <Icon icon="mdi:bell-alert" class="h-6 w-6 text-red-600" />
                     </div>
                 </div>
             </div>
@@ -39,7 +39,7 @@
                         <h3 class="text-2xl font-bold text-indigo-600 mt-1">{{ stats.recent_transfers }}</h3>
                     </div>
                     <div class="bg-indigo-50 p-2 rounded-lg">
-                        <ArrowsRightLeftIcon class="h-6 w-6 text-indigo-600" />
+                        <Icon icon="mdi:transfer" class="h-6 w-6 text-indigo-600" />
                     </div>
                 </div>
             </div>
@@ -50,7 +50,7 @@
                         <h3 class="text-2xl font-bold text-emerald-600 mt-1">${{ formatPrice(stats.total_value) }}</h3>
                     </div>
                     <div class="bg-emerald-50 p-2 rounded-lg">
-                        <BanknotesIcon class="h-6 w-6 text-emerald-600" />
+                        <Icon icon="mdi:currency-usd" class="h-6 w-6 text-emerald-600" />
                     </div>
                 </div>
             </div>
@@ -71,7 +71,7 @@
                     ]"
                 >
                     <div class="flex items-center gap-2">
-                        <component :is="tab.icon" class="h-5 w-5" />
+                        <Icon :icon="tab.icon" class="h-5 w-5" />
                         {{ tab.name }}
                     </div>
                     <span 
@@ -99,17 +99,7 @@
 
 <script setup>
 import { ref, computed, defineAsyncComponent, onMounted } from 'vue';
-import { 
-    PlusIcon, 
-    CubeIcon, 
-    ExclamationTriangleIcon, 
-    ArrowsRightLeftIcon, 
-    BanknotesIcon,
-    TableCellsIcon,
-    InboxArrowDownIcon,
-    ListBulletIcon,
-    AdjustmentsHorizontalIcon
-} from '@heroicons/vue/24/outline';
+import { Icon } from '@iconify/vue';
 import api from '../axios';
 
 // Async components for better performance
@@ -121,10 +111,10 @@ const InventoryOperations = defineAsyncComponent(() => import('./InventoryOperat
 const activeTab = ref('summary');
 
 const tabs = [
-    { id: 'summary', name: 'Products', icon: TableCellsIcon },
-    { id: 'entries', name: 'Purchase Entries', icon: InboxArrowDownIcon },
-    { id: 'movements', name: 'Movement Log', icon: ListBulletIcon },
-    { id: 'operations', name: 'Operations', icon: AdjustmentsHorizontalIcon },
+    { id: 'summary', name: 'Products', icon: 'mdi:table' },
+    { id: 'entries', name: 'Purchase Entries', icon: 'mdi:inbox-arrow-down' },
+    { id: 'movements', name: 'Movement Log', icon: 'mdi:swap-horizontal' },
+    { id: 'operations', name: 'Operations', icon: 'mdi:tune' },
 ];
 
 const activeComponent = computed(() => {

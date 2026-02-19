@@ -110,7 +110,7 @@
                                     class="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
                                 >
                                     <template v-if="!showHtml">
-                                        <PlusIcon class="h-3 w-3 rotate-45" /> <!-- Placeholder for Code icon -->
+                                        <Icon icon="mdi:code-plus" class="h-3 w-3" /> <!-- Placeholder for Code icon -->
                                         <span>View HTML Source</span>
                                     </template>
                                     <template v-else>
@@ -200,7 +200,7 @@
                                         <span
                                             class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
                                         >
-                                            <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                            <Icon icon="mdi:chevron-up-down" class="h-5 w-5 text-gray-400" aria-hidden="true" />
                                         </span>
                                     </ListboxButton>
 
@@ -237,7 +237,7 @@
                                                         v-if="selected"
                                                         class="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600"
                                                     >
-                                                        <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                                                        <Icon icon="mdi:check" class="h-5 w-5" aria-hidden="true" />
                                                     </span>
                                                 </li>
                                             </ListboxOption>
@@ -370,7 +370,7 @@ import {
     SwitchGroup,
     SwitchLabel,
 } from '@headlessui/vue';
-import { CheckIcon, ChevronUpDownIcon, TrashIcon, StarIcon, PlusIcon } from '@heroicons/vue/20/solid';
+import { Icon } from '@iconify/vue';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
