@@ -20,6 +20,7 @@ class Supplier extends Model
         'address',
         'city',
         'country',
+        'image',
         'notes',
         'status',
     ];

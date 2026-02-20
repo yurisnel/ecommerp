@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('emergency_contact_phone', 20)->nullable();
             $table->text('notes')->nullable();
             $table->enum('status', ['active', 'inactive', 'on_leave', 'terminated'])->default('active');
+            $table->string('image')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

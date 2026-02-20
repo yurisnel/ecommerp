@@ -23,6 +23,7 @@ class Employee extends Model
         'employment_type',
         'emergency_contact_name',
         'emergency_contact_phone',
+        'image',
         'notes',
         'status',
     ];

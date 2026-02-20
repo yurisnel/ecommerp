@@ -34,6 +34,7 @@
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
+                            <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Image</th>
                             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
                             <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tax ID / Company</th>
@@ -43,6 +44,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         <tr v-if="loading" v-for="i in 3" :key="i" class="animate-pulse">
+                            <td class="px-6 py-4"><div class="h-12 w-12 bg-gray-200 rounded-full"></div></td>
                             <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-3/4"></div></td>
                             <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-1/2"></div></td>
                             <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-2/3"></div></td>
@@ -50,7 +52,7 @@
                             <td class="px-6 py-4 text-right"><div class="h-4 bg-gray-200 rounded w-12 ml-auto"></div></td>
                         </tr>
                         <tr v-else-if="suppliers.length === 0">
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                                 <div class="flex flex-col items-center">
                                     <i class="fas fa-user-tie text-4xl mb-3 text-gray-200"></i>
                                     <p>No suppliers found.</p>
@@ -58,6 +60,12 @@
                             </td>
                         </tr>
                         <tr v-for="supplier in suppliers" :key="supplier.id" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <img v-if="supplier.image" :src="supplier.image" :alt="supplier.name" class="h-12 w-12 rounded object-cover border border-gray-200" @error="onImageError">
+                                <div v-else class="h-12 w-12 rounded bg-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-image text-gray-400"></i>
+                                </div>
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="font-medium text-gray-900">{{ supplier.name }}</div>
                             </td>
@@ -190,6 +198,10 @@ const deleteSupplier = async (id) => {
         console.error('Error deleting supplier:', error);
         alert('Failed to delete supplier.');
     }
+};
+
+const onImageError = (event) => {
+    event.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23d1d5db%22%3E%3Cpath d=%22M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z%22/%3E%3C/svg%3E';
 };
 
 onMounted(() => {

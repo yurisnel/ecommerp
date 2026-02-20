@@ -15,6 +15,8 @@ import InventoryEntry from '../views/InventoryEntry.vue';
 import ProductForm from '../views/ProductForm.vue';
 import SupplierList from '../views/SupplierList.vue';
 import SupplierForm from '../views/SupplierForm.vue';
+import EmployeeList from '../views/EmployeeList.vue';
+import EmployeeForm from '../views/EmployeeForm.vue';
 import CustomerForm from '../views/CustomerForm.vue';
 import OrderForm from '../views/OrderForm.vue';
 import OrderStatusList from '../views/OrderStatusList.vue';
@@ -38,6 +40,9 @@ const routes = [
             { path: 'suppliers', name: 'Suppliers', component: SupplierList },
             { path: 'suppliers/create', name: 'SupplierCreate', component: SupplierForm },
             { path: 'suppliers/:id/edit', name: 'SupplierEdit', component: SupplierForm },
+            { path: 'employees', name: 'Employees', component: EmployeeList },
+            { path: 'employees/create', name: 'EmployeeCreate', component: EmployeeForm },
+            { path: 'employees/:id/edit', name: 'EmployeeEdit', component: EmployeeForm },
             { path: 'orders', name: 'Orders', component: OrderList },
             { path: 'orders/create', name: 'OrderCreate', component: OrderForm },
             { path: 'orders/:id', name: 'OrderView', component: OrderForm },

@@ -17,11 +17,10 @@ return new class extends Migration
             $table->string('name', 200);
             $table->string('email', 100)->nullable();
             $table->string('phone', 20)->nullable();
-            $table->string('tax_id', 50)->nullable();
-
-            $table->enum('type', ['individual', 'business'])->default('individual');
+            $table->string('tax_id', 50)->nullable(); 
             $table->text('notes')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('image')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

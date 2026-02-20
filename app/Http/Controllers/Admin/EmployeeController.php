@@ -27,6 +27,7 @@ class EmployeeController extends BaseController
             'emergency_contact_name' => 'nullable|string|max:200',
             'emergency_contact_phone' => 'nullable|string|max:20',
             'notes' => 'nullable|string',
+            'image' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive,on_leave,terminated',
         ]);
     }

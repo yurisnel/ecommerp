@@ -90,17 +90,6 @@
                                 >
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                                <select 
-                                    v-model="form.type" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                >
-                                    <option value="retail">Retail</option>
-                                    <option value="wholesale">Wholesale</option>
-                                </select>
-                            </div>
-
                             <div class="col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                                 <textarea 
@@ -115,18 +104,46 @@
 
                 <!-- Sidebar -->
                 <div class="space-y-6">
+                    <!-- Photo card (compact, lateral) -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center">
+                        <h3 class="text-lg font-medium text-gray-900 mb-3">Photo</h3>
+                        <div class="h-24 w-24 rounded-full overflow-hidden border border-gray-200 mb-3">
+                            <img v-if="form.image" :src="form.image" :alt="form.name || 'Customer image'" class="object-cover h-full w-full" @error="onImageError" />
+                            <div v-else class="h-full w-full bg-gray-100 flex items-center justify-center">
+                                <i class="fas fa-image text-gray-300"></i>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 mb-2">
+                            <button @click="showUploader = !showUploader" type="button" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded">Editar</button>
+                            <button v-if="form.image" @click="confirmRemoveImage" type="button" class="px-3 py-1 text-sm border rounded">Eliminar</button>
+                        </div>
+
+                        <p class="text-xs text-gray-400 text-center">Recomendado 400×400 • ≤2MB</p>
+
+                        <div v-show="showUploader" class="w-full mt-3">
+                            <ImageUploader v-model="form.image" folder="customers" />
+                        </div>
+                    </div>
+
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Status & Group</h3>
                         <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select 
-                                    v-model="form.status" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-700">Status</label>
+                                    <p class="text-xs text-gray-500">Enable or disable this customer.</p>
+                                </div>
+                                <Switch
+                                    v-model="statusActive"
+                                    :class="statusActive ? 'bg-indigo-600' : 'bg-gray-200'"
+                                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                 >
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
+                                    <span
+                                        :class="statusActive ? 'translate-x-6' : 'translate-x-1'"
+                                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                                    />
+                                </Switch>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Customer Group</label>
@@ -190,9 +207,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, reactive } from 'vue';
+import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../axios';
+import ImageUploader from '../components/ImageUploader.vue';
+import { Switch } from '@headlessui/vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -211,12 +230,27 @@ const form = reactive({
     name: '',
     email: '',
     phone: '',
-    tax_id: '',
-    type: 'retail',
+    tax_id: '',  
+    image: '',
     notes: '',
     status: 'active',
     customer_group_id: null
 });
+
+const statusActive = ref(true);
+watch(statusActive, (val) => form.status = val ? 'active' : 'inactive');
+
+// Sidebar uploader toggle
+const showUploader = ref(false);
+
+const onImageError = (event) => {
+    event.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23d1d5db%22%3E%3Cpath d=%22M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z%22/%3E%3C/svg%3E';
+};
+
+const confirmRemoveImage = () => {
+    if (!confirm('Are you sure you want to remove the image?')) return;
+    form.image = '';
+};
 
 const addresses = ref([]);
 const loadingAddresses = ref(false);
@@ -239,12 +273,13 @@ const fetchCustomer = async () => {
             name: customer.name,
             email: customer.email,
             phone: customer.phone,
-            tax_id: customer.tax_id,
-            type: customer.type,
+            tax_id: customer.tax_id,          
+            image: customer.image || '',
             notes: customer.notes,
             status: customer.status,
             customer_group_id: customer.customer_group_id
         });
+        statusActive.value = customer.status === 'active';
         fetchAddresses();
     } catch (error) {
         console.error('Error fetching customer:', error);

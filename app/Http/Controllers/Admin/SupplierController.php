@@ -27,6 +27,7 @@ class SupplierController extends BaseController
             'city' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
+            'image' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive',
         ]);
     }

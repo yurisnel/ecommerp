@@ -24,14 +24,9 @@ class CustomerController extends BaseController
             'name' => 'required|string|max:200',
             'email' => 'nullable|email|max:100',
             'phone' => 'nullable|string|max:20',
-            'tax_id' => 'nullable|string|max:50',
-            'address' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-            'type' => 'required|in:individual,business',
+            'tax_id' => 'nullable|string|max:50',            
             'notes' => 'nullable|string',
+            'image' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive',
         ];
 

@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('country', 100)->nullable();
             $table->text('notes')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('image')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
