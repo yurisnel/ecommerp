@@ -2,15 +2,15 @@
     <div class="space-y-6">
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Customers</h1>
-                <p class="text-gray-500 text-sm mt-1">Manage your customer database and viewing their history.</p>
+                <h1 class="text-2xl font-bold text-gray-900">Employees</h1>
+                <p class="text-gray-500 text-sm mt-1">Manage employee records and assignments.</p>
             </div>
             <router-link 
-                :to="{ name: 'CustomerCreate' }"
+                :to="{ name: 'EmployeeCreate' }"
                 class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
             >
                 <Icon icon="mdi:plus" class="h-5 w-5" />
-                <span>New Customer</span>
+                <span>New Employee</span>
             </router-link>
         </div>
 
@@ -25,33 +25,31 @@
         >
             <template #image="{ item }">
                 <div class="flex items-center justify-center">
-                    <img v-if="item.image" :src="item.image" :alt="item.name" class="h-8 w-8 rounded-full object-cover border border-gray-200" @error="onImageError">
+                    <img v-if="item.image" :src="item.image" :alt="item.user?.name || item.employee_number" class="h-8 w-8 rounded-full object-cover border border-gray-200" @error="onImageError">
                     <div v-else class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
                         <i class="fas fa-user text-gray-400 text-xs"></i>
                     </div>
                 </div>
             </template>
 
-            <template #customer_group="{ item }">
-                <span v-if="item.customer_group" class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
-                    {{ item.customer_group.name }}
-                </span>
-                <span v-else class="text-gray-400 text-xs">-</span>
+            <template #name="{ item }">
+                <div class="font-medium text-gray-900">{{ item.user?.name || item.employee_number }}</div>
+                <div class="text-xs text-gray-500">{{ item.user?.email || '' }}</div>
             </template>
 
             <template #rowActions="{ item }">
                 <div class="flex justify-center gap-2">
                     <router-link 
-                        :to="{ name: 'CustomerEdit', params: { id: item.id } }"
+                        :to="{ name: 'EmployeeEdit', params: { id: item.id } }"
                         class="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                        title="Edit Customer"
+                        title="Edit Employee"
                     >
                         <Icon icon="mdi:pencil" class="h-5 w-5" />
                     </router-link>
                     <button 
-                        @click="deleteCustomer(item.id)"
+                        @click="deleteEmployee(item.id)"
                         class="p-1 text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                        title="Delete Customer"
+                        title="Delete Employee"
                     >
                         <Icon icon="mdi:trash-can" class="h-5 w-5" />
                     </button>
@@ -82,23 +80,19 @@ const pagination = ref({
 
 const columns = [
     { key: 'image', label: 'Image' },
-    { key: 'customer_number', label: 'ID' },
+    { key: 'employee_number', label: 'ID' },
     { key: 'name', label: 'Name' },
-    { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Phone' },
-    { key: 'customer_group', label: 'Group' }
+    { key: 'position', label: 'Position' },
+    { key: 'department', label: 'Department' },
+    { key: 'status', label: 'Status' }
 ];
 
 const fetchData = async (page = 1) => {
     loading.value = true;
     try {
-        const response = await api.get('/customers', {
-            params: {
-                page,
-                search: filters.search
-            }
+        const response = await api.get('/employees', {
+            params: { page, search: filters.search }
         });
-        
         const resData = response.data.data;
         items.value = resData.data;
         pagination.value = {
@@ -107,7 +101,7 @@ const fetchData = async (page = 1) => {
             total: resData.total
         };
     } catch (error) {
-        console.error('Error loading customers', error);
+        console.error('Error loading employees', error);
     } finally {
         loading.value = false;
     }
@@ -118,15 +112,14 @@ const handleSearch = debounce((val) => {
     fetchData(1);
 }, 300);
 
-const deleteCustomer = async (id) => {
-    if (!confirm('Are you sure you want to delete this customer?')) return;
-    
+const deleteEmployee = async (id) => {
+    if (!confirm('Are you sure you want to delete this employee?')) return;
     try {
-        await api.delete(`/customers/${id}`);
+        await api.delete(`/employees/${id}`);
         fetchData(pagination.value.current_page);
     } catch (error) {
-        console.error('Error deleting customer:', error);
-        alert(error.response?.data?.message || 'Failed to delete customer');
+        console.error('Error deleting employee:', error);
+        alert(error.response?.data?.message || 'Failed to delete employee');
     }
 };
 

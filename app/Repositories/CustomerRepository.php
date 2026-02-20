@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Customer;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CustomerRepository extends BaseRepository
 {
@@ -12,11 +13,15 @@ class CustomerRepository extends BaseRepository
     }
 
     /**
-     * Search customers with filters
+     * Override search to include relationships
      */
-    public function searchCustomers(array $filters, int $perPage = 15)
+    public function search(array $filters, int $perPage = 15, array $columns = ['*'], array $relations = ['customerGroup']): LengthAwarePaginator
     {
-        $query = $this->model->with(['customerGroup', 'addresses']);
+        // Always include customerGroup relationship
+        $relations = array_merge($relations, ['customerGroup']);
+        $relations = array_unique($relations);
+        
+        $query = $this->model->with($relations);
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
@@ -34,6 +39,26 @@ class CustomerRepository extends BaseRepository
             $query->where('status', $filters['status']);
         }
 
-        return $query->paginate($perPage);
+        return $query->paginate($perPage, $columns);
+    }
+
+    /**
+     * Override paginate to include relationships by default
+     */
+    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = ['customerGroup']): LengthAwarePaginator
+    {
+        // Always include customerGroup relationship
+        $relations = array_merge($relations, ['customerGroup']);
+        $relations = array_unique($relations);
+        
+        return $this->model->with($relations)->paginate($perPage, $columns);
+    }
+
+    /**
+     * Search customers with filters
+     */
+    public function searchCustomers(array $filters, int $perPage = 15)
+    {
+        return $this->search($filters, $perPage);
     }
 }
