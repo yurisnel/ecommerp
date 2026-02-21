@@ -11,7 +11,6 @@ class StockMovement extends Model
     use HasFactory;
 
     protected $fillable = [
-        'movement_number',
         'product_id',
         'warehouse_id',
         'product_entry_id',

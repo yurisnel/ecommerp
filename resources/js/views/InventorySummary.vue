@@ -16,17 +16,6 @@
             
             <div class="flex gap-4 flex-wrap">
                 <select 
-                    v-model="filters.category_id" 
-                    @change="fetchData(1)"
-                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 bg-white min-w-[150px]"
-                >
-                    <option value="">All Categories</option>
-                    <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                        {{ cat.name }}
-                    </option>
-                </select>
-
-                <select 
                     v-model="filters.status" 
                     @change="fetchData(1)"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -271,3 +260,4 @@ watch(() => props.filters, () => {
     fetchData(1);
 }, { deep: true });
 </script>
+

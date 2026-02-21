@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('parent_id')->nullable()->constrained('categories')->onDelete('cascade');
             $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('image')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

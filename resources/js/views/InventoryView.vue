@@ -40,6 +40,21 @@
                         {{ sup.name }}
                     </option>
                 </select>
+                <div class="flex items-center gap-2">
+                    <input
+                        v-model="globalFilters.date_start"
+                        type="date"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+                        @change="fetchStats"
+                    >
+                    <span class="text-gray-400 text-sm">to</span>
+                    <input
+                        v-model="globalFilters.date_end"
+                        type="date"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+                        @change="fetchStats"
+                    >
+                </div>
                 <button 
                     @click="fetchStats" 
                     class="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
@@ -50,7 +65,7 @@
         </div>
 
         <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
@@ -197,7 +212,9 @@ const globalFilters = reactive({
     search: '',
     category_id: '',
     supplier_id: '',
-    product_id: ''
+    product_id: '',
+    date_start: '',
+    date_end: ''
 });
 
 const categories = ref([]);

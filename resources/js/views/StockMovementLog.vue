@@ -40,36 +40,35 @@
             <table class="w-full text-left">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Movement</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
-                        <th v-if="!productId" class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Warehouse</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Quantity</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">#</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Type</th>
+                        <th v-if="!productId" class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Warehouse</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-28">Qty</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Date</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     <tr v-if="loading" v-for="i in 5" :key="i" class="animate-pulse">
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
-                        <td class="px-6 py-4"><div class="h-6 bg-gray-200 rounded-full w-16"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-8 ml-auto"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-48"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-12"></div></td>
+                        <td class="px-4 py-4"><div class="h-6 bg-gray-200 rounded-full w-20"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-28"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
                     </tr>
                     
                     <tr v-else-if="movements.length === 0">
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500 italic">
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500 italic">
                             No stock movements found.
                         </td>
                     </tr>
                     
                     <tr v-for="movement in movements" :key="movement.id" class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="font-medium text-gray-900">{{ movement.movement_number }}</div>
-                            <div class="text-[10px] text-gray-400 uppercase font-bold">{{ formatDateTime(movement.movement_date) }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="font-medium text-gray-900">#{{ movement.id }}</div>
+                        </td>                       
+                        <td class="px-4 py-4 whitespace-nowrap">
                             <span 
                                 class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border"
                                 :class="getTypeClass(movement.type)"
@@ -77,11 +76,11 @@
                                 {{ movement.type }}
                             </span>
                         </td>
-                        <td v-if="!productId" class="px-6 py-4">
+                        <td v-if="!productId" class="px-4 py-4">
                             <div class="text-sm font-medium text-gray-900">{{ movement.product?.name }}</div>
                             <div class="text-[10px] text-gray-500">{{ movement.product?.sku }}</div>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-4 py-4">
                             <div v-if="movement.type === 'transfer'" class="flex flex-col gap-0.5 text-[11px]">
                                 <span class="text-red-500 font-medium">From: {{ movement.from_warehouse?.name }}</span>
                                 <span class="text-emerald-500 font-medium">To: {{ movement.to_warehouse?.name }}</span>
@@ -90,7 +89,7 @@
                                 {{ movement.warehouse?.name }}
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-4 py-4 text-right">
                             <div class="flex flex-col items-end">
                                 <span 
                                     class="font-bold text-sm"
@@ -101,8 +100,8 @@
                                 <span class="text-[10px] text-gray-400 uppercase">{{ movement.product?.unit }}</span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-xs text-gray-500 max-w-xs truncate">
-                            {{ movement.notes }}
+                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ formatDateTime(movement.movement_date) }}
                         </td>
                     </tr>
                 </tbody>

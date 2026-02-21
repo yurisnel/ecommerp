@@ -39,7 +39,6 @@ class InventoryController extends Controller
     public function createEntry(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'entry_number' => 'nullable|string|max:50|unique:product_entries',
             'product_id' => 'required|exists:products,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'warehouse_id' => 'required|exists:warehouses,id',
@@ -187,7 +186,7 @@ class InventoryController extends Controller
     public function getProductEntries(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', 15);
-        $filters = $request->only(['search', 'product_id', 'warehouse_id', 'supplier_id']);
+        $filters = $request->only(['search', 'product_id', 'warehouse_id', 'supplier_id', 'category_id', 'date_start', 'date_end']);
 
         $entries = $this->inventoryService->getProductEntries($perPage, $filters);
 

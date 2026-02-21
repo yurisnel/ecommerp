@@ -175,7 +175,6 @@ class SalesService
 
                 // Create stock movement
                 $this->inventoryService->createStockMovement([
-                    'movement_number' => $this->inventoryService->generateMovementNumber(),
                     'product_id' => $item->product_id,
                     'warehouse_id' => $order->warehouse_id,
                     'product_entry_id' => $item->product_entry_id,
@@ -260,7 +259,6 @@ class SalesService
 
                     // Create stock movement for return
                     $this->inventoryService->createStockMovement([
-                        'movement_number' => $this->inventoryService->generateMovementNumber(),
                         'product_id' => $item->product_id,
                         'warehouse_id' => $order->warehouse_id,
                         'type' => 'in',

@@ -13,7 +13,6 @@ class ProductEntry extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'entry_number',
         'product_id',
         'supplier_id',
         'warehouse_id',

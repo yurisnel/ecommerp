@@ -94,11 +94,11 @@ const pagination = ref({
 });
 
 const columns = [
-    { key: 'order_number', label: 'Order #' },
-    { key: 'order_date', label: 'Date' },
+    { key: 'order_number', label: 'Order #' }, 
     { key: 'customer', label: 'Customer' },
     { key: 'total', label: 'Total' },
-    { key: 'status', label: 'Status' }
+    { key: 'status', label: 'Status' },
+    { key: 'order_date', label: 'Date' },
 ];
 
 const fetchData = async (page = 1) => {

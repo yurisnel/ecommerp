@@ -27,11 +27,6 @@ class InventoryService
         DB::beginTransaction();
 
         try {
-            // Generate entry number if not provided
-            if (!isset($data['entry_number'])) {
-                $data['entry_number'] = $this->generateEntryNumber();
-            }
-
             // Calculate total cost
             $data['total_cost'] = $data['quantity'] * $data['cost_per_unit'];
 
@@ -40,7 +35,6 @@ class InventoryService
 
             // Create stock movement (IN)
             $this->createStockMovement([
-                'movement_number' => $this->generateMovementNumber(),
                 'product_id' => $data['product_id'],
                 'warehouse_id' => $data['warehouse_id'],
                 'product_entry_id' => $entry->id,
@@ -49,7 +43,7 @@ class InventoryService
                 'unit_price' => $data['cost_per_unit'],
                 'reference_type' => 'product_entry',
                 'reference_id' => $entry->id,
-                'notes' => 'Product entry: ' . $entry->entry_number,
+                'notes' => '',
                 'created_by' => $data['created_by'] ?? null,
                 'movement_date' => $data['entry_date'],
             ]);
@@ -129,7 +123,7 @@ class InventoryService
                     'warehouse_id' => $entry->warehouse_id,
                     'quantity' => $entry->quantity,
                     'unit_price' => $entry->cost_per_unit,
-                    'notes' => $entry->notes ?? 'Updated Product entry: ' . $entry->entry_number,
+                    'notes' => $entry->notes ?? 'Updated Product entry #' . $entry->id,
                     'movement_date' => $entry->entry_date,
                 ]);
             }
@@ -286,7 +280,6 @@ class InventoryService
 
         try {
             $movement = $this->createStockMovement([
-                'movement_number' => $this->generateMovementNumber(),
                 'product_id' => $data['product_id'],
                 'warehouse_id' => $data['warehouse_id'],
                 'type' => 'adjustment',
@@ -336,7 +329,6 @@ class InventoryService
 
             // Create transfer movement
             $movement = $this->createStockMovement([
-                'movement_number' => $this->generateMovementNumber(),
                 'product_id' => $data['product_id'],
                 'warehouse_id' => $data['from_warehouse_id'],
                 'type' => 'transfer',
@@ -397,41 +389,6 @@ class InventoryService
         ];
     }
 
-    /**
-     * Generate unique entry number
-     * 
-     * @return string
-     */
-    private function generateEntryNumber(): string
-    {
-        $prefix = 'ENT';
-        $date = date('Ymd');
-        $lastEntry = ProductEntry::whereDate('created_at', today())
-            ->orderBy('id', 'desc')
-            ->first();
-
-        $sequence = $lastEntry ? (int)substr($lastEntry->entry_number, -4) + 1 : 1;
-
-        return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Generate unique movement number
-     * 
-     * @return string
-     */
-    public function generateMovementNumber(): string
-    {
-        $prefix = 'MOV';
-        $date = date('Ymd');
-        $lastMovement = StockMovement::whereDate('created_at', today())
-            ->orderBy('id', 'desc')
-            ->first();
-
-        $sequence = $lastMovement ? (int)substr($lastMovement->movement_number, -4) + 1 : 1;
-
-        return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
-    }
     /**
      * Get inventory summary (paginated)
      * 
@@ -500,7 +457,7 @@ class InventoryService
         if (isset($filters['search']) && $filters['search']) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('entry_number', 'like', "%{$search}%")
+                $q->where('id', 'like', "%{$search}%")
                     ->orWhere('batch_number', 'like', "%{$search}%")
                     ->orWhereHas('product', function ($pq) use ($search) {
                         $pq->where('name', 'like', "%{$search}%")
@@ -555,7 +512,7 @@ class InventoryService
         if (isset($filters['search']) && $filters['search']) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('entry_number', 'like', "%{$search}%")
+                $q->where('id', "%{$search}%")
                     ->orWhere('batch_number', 'like', "%{$search}%")
                     ->orWhereHas('product', function ($pq) use ($search) {
                         $pq->where('name', 'like', "%{$search}%")
@@ -585,6 +542,15 @@ class InventoryService
             });
         }
 
+        // Filter by date range
+        if (isset($filters['date_start']) && !empty($filters['date_start'])) {
+            $query->whereDate('entry_date', '>=', $filters['date_start']);
+        }
+
+        if (isset($filters['date_end']) && !empty($filters['date_end'])) {
+            $query->whereDate('entry_date', '<=', $filters['date_end']);
+        }
+
         return $query->paginate($perPage);
     }
 
@@ -602,7 +568,7 @@ class InventoryService
         if (isset($filters['search']) && $filters['search']) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('movement_number', 'like', "%{$search}%")
+                $q->where('id', "%{$search}%")
                     ->orWhere('notes', 'like', "%{$search}%")
                     ->orWhereHas('product', function ($pq) use ($search) {
                         $pq->where('name', 'like', "%{$search}%")

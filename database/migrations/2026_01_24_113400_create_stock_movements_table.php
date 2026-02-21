@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stock_movements', function (Blueprint $table) {
-            $table->id();
-            $table->string('movement_number', 50)->unique();
+            $table->id();          
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->foreignId('warehouse_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_entry_id')->nullable()->constrained()->onDelete('set null');

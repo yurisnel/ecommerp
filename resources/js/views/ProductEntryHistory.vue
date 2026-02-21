@@ -36,71 +36,75 @@
             <table class="w-full text-left">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Entry Detail</th>
-                        <th v-if="!productId" class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Qty</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Cost</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Selling Price</th>
-                        <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">Entry</th>
+                        <th v-if="!productId" class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-24">Qty</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-28">Cost</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-32">Selling Price</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Date</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-20">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     <tr v-if="loading" v-for="i in 5" :key="i" class="animate-pulse">
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-8 ml-auto"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
-                        <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-20 ml-auto"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-12"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-28"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-20 ml-auto"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-24 ml-auto"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
+                        <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
                     </tr>
                     
                     <tr v-else-if="entries.length === 0">
-                        <td colspan="7" class="px-6 py-12 text-center text-gray-500 italic">
+                        <td colspan="8" class="px-6 py-12 text-center text-gray-500 italic">
                             No entry history found.
                         </td>
                     </tr>
                     
                     <tr v-for="entry in entries" :key="entry.id" class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4">
-                            <div class="font-medium text-indigo-600">{{ entry.entry_number }}</div>
-                            <div class="text-[10px] text-gray-400 uppercase font-semibold mt-1">{{ formatDate(entry.entry_date) }}</div>
-                        </td>
-                        <td v-if="!productId" class="px-6 py-4 text-sm">
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="font-medium text-indigo-600">#{{ entry.id }}</div>
+                        </td>  
+                        <td v-if="!productId" class="px-4 py-4 text-sm">
                             <div class="text-gray-900 font-medium">{{ entry.product?.name }}</div>
                             <div class="text-xs text-gray-500">{{ entry.product?.sku }}</div>
                         </td>
-                        <td class="px-6 py-4 text-sm">
+                        <td class="px-4 py-4 text-sm">
                             <span v-if="entry.supplier" class="text-gray-700">{{ entry.supplier.name }}</span>
                             <span v-else class="text-gray-400 italic">No supplier</span>
                         </td>
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-4 py-4 text-right">
                             <span class="font-semibold text-gray-900">{{ entry.quantity }}</span> 
                             <span class="text-[10px] text-gray-400 uppercase ml-1">{{ entry.product?.unit }}</span>
                         </td>
-                        <td class="px-6 py-4 text-right font-medium text-gray-700">
+                        <td class="px-4 py-4 text-right font-medium text-gray-700">
                             ${{ Number(entry.cost_per_unit).toFixed(2) }}
                         </td>
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-4 py-4 text-right">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                                 ${{ Number(entry.selling_price).toFixed(2) }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-right space-x-3">
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ formatDate(entry.entry_date) }}
+                        </td>
+                        <td class="text-right">
                             <router-link 
                                 :to="{ name: 'InventoryEntryEdit', params: { id: entry.id } }"
-                                class="text-indigo-600 hover:text-indigo-900 transition-colors"
+                                class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors inline-block"
                                 title="Edit Entry"
                             >
-                                <Icon icon="mdi:pencil" class="h-5 w-5 inline" />
+                                <Icon icon="mdi:pencil" class="h-4 w-4" />
                             </router-link>
-                            <button 
-                                @click="deleteEntry(entry.id)"
-                                class="text-rose-600 hover:text-rose-900 transition-colors"
+                            <button                               
+                                @click.prevent="deleteEntry(entry.id)"
+                                class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                                 title="Delete Entry"
                             >
-                                <Icon icon="mdi:trash-can" class="h-5 w-5 inline" />
+                                <Icon icon="mdi:trash-can" class="h-4 w-4" />
                             </button>
                         </td>
                     </tr>
@@ -135,6 +139,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
+import { Icon } from '@iconify/vue';
 import api from '../axios';
 import { debounce } from 'lodash';
 
@@ -174,6 +179,8 @@ const fetchData = async (page = 1) => {
                 product_id: props.filters?.product_id || filters.product_id,
                 category_id: props.filters?.category_id,
                 supplier_id: props.filters?.supplier_id,
+                date_start: props.filters?.date_start || null,
+                date_end: props.filters?.date_end || null,
                 per_page: 10
             }
         });
