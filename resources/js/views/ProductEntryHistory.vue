@@ -134,8 +134,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { MagnifyingGlassIcon, ArrowPathIcon, PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons/vue/24/outline';
+import { ref, reactive, onMounted, watch } from 'vue';
 import api from '../axios';
 import { debounce } from 'lodash';
 
@@ -143,6 +142,10 @@ const props = defineProps({
     productId: {
         type: [Number, String],
         default: null
+    },
+    filters: {
+        type: Object,
+        default: () => ({})
     }
 });
 
@@ -167,8 +170,10 @@ const fetchData = async (page = 1) => {
         const response = await api.get('/inventory/entries', {
             params: {
                 page,
-                search: filters.search,
-                product_id: filters.product_id,
+                search: props.filters?.search || filters.search,
+                product_id: props.filters?.product_id || filters.product_id,
+                category_id: props.filters?.category_id,
+                supplier_id: props.filters?.supplier_id,
                 per_page: 10
             }
         });
@@ -220,4 +225,9 @@ const formatDate = (dateStr) => {
 onMounted(() => {
     fetchData();
 });
+
+// Watch for filter changes from parent
+watch(() => props.filters, () => {
+    fetchData(1);
+}, { deep: true });
 </script>

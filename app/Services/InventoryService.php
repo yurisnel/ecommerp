@@ -478,6 +478,70 @@ class InventoryService
     }
 
     /**
+     * Get inventory statistics for dashboard
+     * 
+     * @param array $filters
+     * @return array
+     */
+    public function getInventoryStats(array $filters = []): array
+    {
+        // Basic stats from products table (always global)
+        $totalProducts = Product::count();
+        $lowStock = Product::whereRaw(
+            '(SELECT SUM(quantity) FROM inventories WHERE product_id = products.id) < COALESCE(min_stock, 10)'
+        )->count();
+        $outOfStock = Product::whereRaw(
+            '(SELECT SUM(quantity) FROM inventories WHERE product_id = products.id) <= 0 OR (SELECT SUM(quantity) FROM inventories WHERE product_id = products.id) IS NULL'
+        )->count();
+
+        // Stats from product entries with filters
+        $query = ProductEntry::query();
+
+        if (isset($filters['search']) && $filters['search']) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('entry_number', 'like', "%{$search}%")
+                    ->orWhere('batch_number', 'like', "%{$search}%")
+                    ->orWhereHas('product', function ($pq) use ($search) {
+                        $pq->where('name', 'like', "%{$search}%")
+                            ->orWhere('sku', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if (isset($filters['product_id']) && $filters['product_id']) {
+            $query->where('product_id', $filters['product_id']);
+        }
+
+        if (isset($filters['supplier_id']) && $filters['supplier_id']) {
+            $query->where('supplier_id', $filters['supplier_id']);
+        }
+
+        if (isset($filters['category_id']) && !empty($filters['category_id'])) {
+            $query->whereHas('product', function ($pq) use ($filters) {
+                $pq->whereHas('categories', function ($cq) use ($filters) {
+                    $cq->where('category_product.category_id', $filters['category_id']);
+                });
+            });
+        }
+
+        $totalQuantity = $query->sum(DB::raw('COALESCE(quantity, 0)'));
+        $totalInvested = $query->sum(DB::raw('COALESCE(quantity, 0) * COALESCE(cost_per_unit, 0)'));
+        $totalSellingPrice = $query->sum(DB::raw('COALESCE(quantity, 0) * COALESCE(selling_price, 0)'));
+        $totalProfit = $totalSellingPrice - $totalInvested;
+
+        return [
+            'total_products' => $totalProducts,
+            'low_stock' => $lowStock,
+            'out_of_stock' => $outOfStock,
+            'total_quantity' => (float) $totalQuantity,
+            'total_invested' => (float) $totalInvested,
+            'total_profit' => (float) $totalProfit,
+            'total_value' => (float) $totalSellingPrice
+        ];
+    }
+
+    /**
      * Get product entries history (paginated)
      * 
      * @param int $perPage
@@ -510,6 +574,15 @@ class InventoryService
 
         if (isset($filters['supplier_id'])) {
             $query->where('supplier_id', $filters['supplier_id']);
+        }
+
+        // Filter by product category
+        if (isset($filters['category_id']) && !empty($filters['category_id'])) {
+            $query->whereHas('product', function ($pq) use ($filters) {
+                $pq->whereHas('categories', function ($cq) use ($filters) {
+                    $cq->where('category_product.category_id', $filters['category_id']);
+                });
+            });
         }
 
         return $query->paginate($perPage);
@@ -550,6 +623,19 @@ class InventoryService
             $query->where('warehouse_id', $filters['warehouse_id']);
         }
 
+        if (isset($filters['category_id']) && $filters['category_id']) {
+            $query->whereHas('product', function ($pq) use ($filters) {
+                $pq->where('category_id', $filters['category_id']);
+            });
+        }
+
+        if (isset($filters['supplier_id']) && $filters['supplier_id']) {
+            $query->whereHas('product', function ($pq) use ($filters) {
+                $pq->where('supplier_id', $filters['supplier_id']);
+            });
+        }
+
         return $query->paginate($perPage);
     }
 }
+

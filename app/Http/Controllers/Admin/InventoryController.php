@@ -204,7 +204,7 @@ class InventoryController extends Controller
     public function getStockMovements(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', 15);
-        $filters = $request->only(['search', 'type', 'product_id', 'warehouse_id']);
+        $filters = $request->only(['search', 'type', 'product_id', 'warehouse_id', 'category_id', 'supplier_id']);
 
         $movements = $this->inventoryService->getStockMovements($perPage, $filters);
 
@@ -212,6 +212,21 @@ class InventoryController extends Controller
             'success' => true,
             'message' => 'Stock movements retrieved successfully',
             'data' => $movements
+        ]);
+    }
+
+    /**
+     * Get inventory statistics
+     */
+    public function getStats(Request $request): JsonResponse
+    {
+        $filters = $request->only(['search', 'product_id', 'category_id', 'supplier_id']);
+        $stats = $this->inventoryService->getInventoryStats($filters);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Inventory statistics retrieved successfully',
+            'data' => $stats
         ]);
     }
 }

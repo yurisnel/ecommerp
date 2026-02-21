@@ -14,7 +14,18 @@
                 >
             </div>
             
-            <div class="flex gap-4">
+            <div class="flex gap-4 flex-wrap">
+                <select 
+                    v-model="filters.category_id" 
+                    @change="fetchData(1)"
+                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 bg-white min-w-[150px]"
+                >
+                    <option value="">All Categories</option>
+                    <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                        {{ cat.name }}
+                    </option>
+                </select>
+
                 <select 
                     v-model="filters.status" 
                     @change="fetchData(1)"
@@ -159,16 +170,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import api from '../axios';
 import { debounce } from 'lodash';
 
 const products = ref([]);
 const loading = ref(false);
+const categories = ref([]);
 const filters = reactive({
     search: '',
-    status: ''
+    status: '',
+    category_id: ''
 });
 
 const pagination = ref({
@@ -179,6 +192,13 @@ const pagination = ref({
     to: 0
 });
 
+const props = defineProps({
+    filters: {
+        type: Object,
+        default: () => ({})
+    }
+});
+
 const emit = defineEmits(['refresh-stats']);
 
 const fetchData = async (page = 1) => {
@@ -187,8 +207,9 @@ const fetchData = async (page = 1) => {
         const response = await api.get('/inventory', {
             params: {
                 page,
-                search: filters.search,
+                search: props.filters?.search || filters.search,
                 status: filters.status,
+                category_id: props.filters?.category_id || filters.category_id,
                 per_page: 10
             }
         });
@@ -208,6 +229,15 @@ const fetchData = async (page = 1) => {
         console.error('Error fetching inventory summary:', error);
     } finally {
         loading.value = false;
+    }
+};
+
+const fetchCategories = async () => {
+    try {
+        const response = await api.get('/categories', { params: { per_page: 100 } });
+        categories.value = response.data.data.data || [];
+    } catch (error) {
+        console.error('Error fetching categories:', error);
     }
 };
 
@@ -233,5 +263,11 @@ const deleteProduct = async (id) => {
 
 onMounted(() => {
     fetchData();
+    fetchCategories();
 });
+
+// Watch for filter changes from parent
+watch(() => props.filters, () => {
+    fetchData(1);
+}, { deep: true });
 </script>

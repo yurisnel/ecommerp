@@ -135,7 +135,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import api from '../axios';
 import { debounce } from 'lodash';
@@ -144,6 +144,10 @@ const props = defineProps({
     productId: {
         type: [Number, String],
         default: null
+    },
+    filters: {
+        type: Object,
+        default: () => ({})
     }
 });
 
@@ -172,6 +176,8 @@ const fetchData = async (page = 1) => {
                 search: filters.search,
                 type: filters.type,
                 product_id: filters.product_id,
+                category_id: props.filters.category_id || null,
+                supplier_id: props.filters.supplier_id || null,
                 per_page: 10
             }
         });
@@ -229,4 +235,9 @@ const getQuantityClass = (type) => {
 onMounted(() => {
     fetchData();
 });
+
+// Watch for global filter changes
+watch(() => props.filters, () => {
+    fetchData(1);
+}, { deep: true });
 </script>
