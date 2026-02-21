@@ -164,10 +164,10 @@ class SalesOrder extends Model
     }
 
     /**
-     * Status history records for this order
+     * Status history records for this order (newest first)
      */
     public function statusHistories(): HasMany
     {
-        return $this->hasMany(OrderStatusHistory::class, 'sales_order_id');
+        return $this->hasMany(OrderStatusHistory::class, 'sales_order_id')->orderBy('created_at', 'desc');
     }
 }

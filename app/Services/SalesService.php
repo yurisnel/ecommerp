@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\OrderStatus;
 use App\Models\OrderStatusHistory;
 use App\Models\StockMovement;
+use App\Models\SalesChannel;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -315,16 +316,10 @@ class SalesService
         try {
             $order = SalesOrder::findOrFail($data['sales_order_id']);
 
-            // Generate payment number if not provided
-            if (!isset($data['payment_number'])) {
-                $data['payment_number'] = $this->generatePaymentNumber();
-            }
-
-            $payment = Payment::create([
-                'payment_number' => $data['payment_number'],
+            $payment = Payment::create([               
                 'sales_order_id' => $data['sales_order_id'],
-                'payment_method' => $data['payment_method'],
-                'amount' => $data['amount'],
+                'payment_method_id' => $data['payment_method_id'],
+                'amount' => $data['amount'],                
                 'status' => $data['status'] ?? 'completed',
                 'transaction_id' => $data['transaction_id'] ?? null,
                 'notes' => $data['notes'] ?? null,
@@ -359,21 +354,61 @@ class SalesService
         return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
+    
+
     /**
-     * Generate unique payment number
-     * 
-     * @return string
+     * Get order statistics
+     *
+     * @param array $filters
+     * @return array
      */
-    private function generatePaymentNumber(): string
+    public function getOrderStats(array $filters = [])
     {
-        $prefix = 'PAY';
-        $date = date('Ymd');
-        $lastPayment = Payment::whereDate('created_at', today())
-            ->orderBy('id', 'desc')
-            ->first();
+        $query = SalesOrder::query();
 
-        $sequence = $lastPayment ? (int)substr($lastPayment->payment_number, -4) + 1 : 1;
+        // Apply filters
+        if (isset($filters['customer_id']) && $filters['customer_id']) {
+            $query->where('customer_id', $filters['customer_id']);
+        }
 
-        return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        if (isset($filters['sales_channel_id']) && $filters['sales_channel_id']) {
+            $query->where('sales_channel_id', $filters['sales_channel_id']);
+        }
+
+        if (isset($filters['status']) && $filters['status']) {
+            $query->where('order_status_id', $filters['status']);
+        }
+
+        if (isset($filters['date_start']) && $filters['date_start']) {
+            $query->whereDate('order_date', '>=', $filters['date_start']);
+        }
+
+        if (isset($filters['date_end']) && $filters['date_end']) {
+            $query->whereDate('order_date', '<=', $filters['date_end']);
+        }
+
+        // Filter by payment method (through payments relation)
+        if (isset($filters['payment_method_id']) && $filters['payment_method_id']) {
+            $query->whereHas('payments', function ($pq) use ($filters) {
+                $pq->where('payment_method_id', $filters['payment_method_id']);
+            });
+        }      
+
+        // All time totals (with filters)
+        $totalOrders = $query->clone()->count();
+        $totalSales = $query->clone()->sum('total');
+
+        // Calculate net profit (total - discount - tax + shipping - cost of items)
+        // We'll use a simple calculation: total - discount - tax - shipping
+        $totalDiscount = $query->clone()->sum('discount');
+        $totalTax = $query->clone()->sum('tax');
+        $totalShipping = $query->clone()->sum('shipping');
+        $netProfit = $totalSales - $totalDiscount - $totalTax - $totalShipping;
+
+        return [           
+            'total_orders' => $totalOrders,
+            'total_sales' => (float) $totalSales,
+            'net_profit' => (float) $netProfit
+        ];
     }
 }

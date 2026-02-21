@@ -26,11 +26,20 @@ class SalesOrderController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->get('per_page', 15);
-        $filters = $request->only(['search', 'status', 'customer_id', 'warehouse_id']);
+        $filters = $request->only([
+            'search', 
+            'status', 
+            'customer_id', 
+            'warehouse_id',
+            'sales_channel_id',
+            'payment_method_id',
+            'date_start',
+            'date_end'
+        ]);
 
         // In BaseController, it uses $this->service->search or paginate
         // We want to include relations by default for orders list
-        $relations = ['customer', 'salesChannel', 'warehouse'];
+        $relations = ['customer', 'salesChannel', 'warehouse', 'payments.paymentMethod', 'orderStatus'];
 
         if ($perPage == -1) {
             $data = $this->service->getAll($relations);
@@ -42,11 +51,31 @@ class SalesOrderController extends BaseController
     }
 
     /**
+     * Get order statistics
+     */
+    public function stats(Request $request): JsonResponse
+    {
+        $filters = $request->only([
+            'customer_id',
+            'sales_channel_id',
+            'payment_method_id',
+            'status',
+            'date_start',
+            'date_end'
+        ]);
+
+        $stats = $this->salesService->getOrderStats($filters);
+
+        return $this->successResponse($stats, 'Order statistics retrieved successfully');
+    }
+
+    /**
      * Display the specified order with items
      */
-    public function show(int $id): JsonResponse
+    public function show(string|int $id): JsonResponse
     {
-        $relations = ['customer', 'salesChannel', 'warehouse', 'items.product', 'items.productEntry', 'statusHistories.status', 'statusHistories.changer'];
+        $id = (int) $id;
+        $relations = ['customer', 'salesChannel', 'warehouse', 'items.product', 'items.productEntry', 'statusHistories.status', 'statusHistories.changer', 'payments.paymentMethod'];
         $order = $this->service->getById($id, $relations);
 
         if (!$order) {
@@ -83,6 +112,39 @@ class SalesOrderController extends BaseController
     {
         $order = $this->salesService->cancelOrder($id);
         return $this->successResponse($order, 'Order cancelled successfully');
+    }
+
+    /**
+     * Add status history entry
+     */
+    public function addStatusHistory(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'order_status_id' => 'required|exists:order_statuses,id',
+            'changed_at' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+
+        $order = $this->service->getById($id);
+        if (!$order) {
+            return $this->errorResponse('Order not found', 404);
+        }
+
+        $history = \App\Models\OrderStatusHistory::create([
+            'sales_order_id' => $id,
+            'order_status_id' => $validated['order_status_id'],
+            'changed_by' => auth()->id() ?? 1,
+            'changed_at' => $validated['changed_at'] ?? now(),
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        // Also update the order's current status
+        $order->order_status_id = $validated['order_status_id'];
+        $order->save();
+
+        $history->load('status');
+
+        return $this->successResponse($history, 'Status history added successfully', 201);
     }
 
     /**

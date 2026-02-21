@@ -94,10 +94,12 @@ Route::prefix('v1')->group(function () {
     Route::post('addresses/{id}/default', [CustomerAddressController::class, 'setDefault']);
 
     // Sales & Orders
-    Route::apiResource('orders', SalesOrderController::class);
+    Route::get('orders/stats', [SalesOrderController::class, 'stats']);
+    Route::post('orders/payment', [SalesOrderController::class, 'processPayment']);
+    Route::post('orders/{id}/status-history', [SalesOrderController::class, 'addStatusHistory']);
     Route::post('orders/{id}/confirm', [SalesOrderController::class, 'confirm']);
     Route::post('orders/{id}/cancel', [SalesOrderController::class, 'cancel']);
-    Route::post('orders/payment', [SalesOrderController::class, 'processPayment']);
+    Route::apiResource('orders', SalesOrderController::class);
     Route::apiResource('sales-channels', SalesChannelController::class);
 
     // Discounts

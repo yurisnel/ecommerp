@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('payment_method_id')->nullable()->after('sales_order_id')->constrained()->onDelete('set null');
             
             // Keep old column for migration, will be removed later
-            // $table->dropColumn('payment_method');
+            $table->dropColumn('payment_method');
         });
     }
 
@@ -26,6 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('payments', function (Blueprint $table) {
+            $table->enum('payment_method', ['cash', 'credit_card', 'debit_card', 'bank_transfer', 'paypal', 'other']);
             $table->dropForeign(['payment_method_id']);
             $table->dropColumn('payment_method_id');
         });

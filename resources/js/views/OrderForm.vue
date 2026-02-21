@@ -7,39 +7,16 @@
                 <p class="text-gray-500 text-sm mt-1">Create and manage customer purchase orders.</p>
             </div>
             <div class="flex gap-3">
-               
-                <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select v-model="form.order_status_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                                <option :value="null">Select status...</option>
-                                <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
-                            </select>
-                        </div>
+             
                 <button 
-                    v-if="!isEditing"
                     @click="submit" 
-                    :disabled="submitting || !isValidOrder"
+                    :disabled="submitting || (!isEditing && !isValidOrder)"
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                     <span v-if="submitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    <span>Create Order</span>
+                    <span>{{ isEditing ? 'Save Changes' : 'Create Order' }}</span>
                 </button>
-                <template v-else>
-                     <button 
-                        v-if="currentStatus?.slug === 'pending'"
-                        @click="confirmOrder" 
-                        class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-                    >
-                        Confirm Order
-                    </button>
-                    <button 
-                        v-if="currentStatus?.slug !== 'cancelled' && currentStatus?.slug !== 'confirmed'"
-                        @click="cancelOrder" 
-                        class="bg-rose-600 text-white px-4 py-2 rounded-lg hover:bg-rose-700 transition-colors"
-                    >
-                        Cancel Order
-                    </button>
-                </template>
+                
 
                  <button 
                     @click="$router.push({ name: 'Orders' })" 
@@ -346,6 +323,69 @@
                         </div>
                     </div>
                 </div>
+                
+
+                <!-- Payments Sidebar -->
+                <div v-if="isEditing" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden relative">
+                    <div class="absolute top-0 right-0 p-2">
+                        <div class="h-24 w-24 bg-emerald-50 rounded-full -mr-12 -mt-12 opacity-50"></div>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2 relative z-10 flex items-center gap-2">
+                        <Icon icon="mdi:credit-card" class="h-5 w-5 text-emerald-600" />
+                        Payments
+                    </h3>
+                    <div class="space-y-4 text-sm relative z-10">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500">Order Total</span>
+                            <span class="font-bold text-gray-900">${{ totals.total.toFixed(2) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500">Paid</span>
+                            <span class="font-bold text-emerald-600">${{ paidAmount.toFixed(2) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t pt-2">
+                            <span class="text-gray-500">Balance</span>
+                            <span class="font-bold" :class="balanceAmount > 0 ? 'text-rose-600' : 'text-emerald-600'">${{ balanceAmount.toFixed(2) }}</span>
+                        </div>
+                        
+                        <div v-if="orderPayments.length > 0" class="mt-4">
+                            <h4 
+                                class="text-xs font-bold text-gray-700 mb-2 cursor-pointer flex items-center gap-1 hover:text-emerald-600"
+                                @click="showPaymentHistory = !showPaymentHistory"
+                            >
+                                <Icon :icon="showPaymentHistory ? 'mdi:chevron-down' : 'mdi:chevron-right'" class="h-4 w-4" />
+                                Payment History
+                            </h4>
+                            <ul v-show="showPaymentHistory" class="divide-y divide-gray-100 text-sm">
+                                <li v-for="payment in orderPayments" :key="payment.id" class="py-2 flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-medium">{{ payment.payment_method?.name || 'Unknown' }}</span>
+                                            <span v-if="payment.notes" class="relative group">
+                                                <Icon icon="mdi:information-outline" class="h-4 w-4 text-gray-400 hover:text-emerald-600 cursor-help" />
+                                                <span class="absolute left-0 bottom-full mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">{{ payment.notes }}</span>
+                                            </span>
+                                            <span v-if="payment.transaction_id" class="relative group">
+                                                <Icon icon="mdi:tag-outline" class="h-4 w-4 text-gray-400 hover:text-emerald-600 cursor-help" />
+                                                <span class="absolute left-0 bottom-full mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">ID: {{ payment.transaction_id }}</span>
+                                            </span>
+                                        </div>
+                                        <div class="text-xs text-gray-500">{{ formatDate(payment.payment_date) }}</div>
+                                    </div>
+                                    <div class="font-bold text-emerald-600">${{ Number(payment.amount).toFixed(2) }}</div>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <button
+                            @click="showPaymentModal = true"
+                            class="w-full mt-4 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Icon icon="mdi:plus" class="h-4 w-4" />
+                            Add Payment
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Status Sidebar -->
                 <div v-if="isEditing" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden relative">
@@ -353,31 +393,19 @@
                         <div class="h-24 w-24 bg-indigo-50 rounded-full -mr-12 -mt-12 opacity-50"></div>
                     </div>
                     <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2 relative z-10">Order Status</h3>
-                    <div class="space-y-4 text-sm relative z-10">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-500">Current Status</span>
-                            <span 
-                                v-if="currentStatus"
-                                class="px-3 py-1 rounded-full text-[10px] font-black uppercase border-2 shadow-sm text-white"
-                                :style="{ backgroundColor: currentStatus.color, borderColor: currentStatus.color }"
-                            >
-                                {{ currentStatus.name }}
-                            </span>
-                            <span v-else class="text-gray-400 text-sm">No status assigned</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Processed On</span>
-                            <span class="font-bold text-gray-700">{{ formatDate(form.created_at) }}</span>
-                        </div>
-                        <div class="mt-4">
-                            <h4 class="text-xs font-bold text-gray-700 mb-2">Status History</h4>
+                    <div class="space-y-4 text-sm relative z-10">                    
+                        <div class="mt-4">                            
                             <ul class="divide-y divide-gray-100 text-sm">
                                 <li v-if="!form.status_histories || form.status_histories.length === 0" class="py-2 text-gray-400 italic">No history yet.</li>
                                 <li v-for="h in form.status_histories" :key="h.id" class="py-2 flex justify-between items-start">
-                                    <div>
+                                    <div class="flex-1">
                                         <div class="flex items-center gap-2">
                                             <span v-if="h.status?.color" class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: h.status.color }"></span>
                                             <span class="font-medium">{{ h.status?.name || 'Unknown' }}</span>
+                                            <span v-if="h.notes" class="relative group">
+                                                <Icon icon="mdi:information-outline" class="h-4 w-4 text-gray-400 hover:text-emerald-600 cursor-help" />
+                                                <span class="absolute left-0 bottom-full mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">{{ h.notes }}</span>
+                                            </span>
                                         </div>
                                         <div class="text-xs text-gray-500">By: {{ h.changer?.name || 'System' }}</div>
                                     </div>
@@ -386,6 +414,134 @@
                             </ul>
                         </div>
                     </div>
+                      
+                     <button                            
+                            @click="showStatusModal = true"
+                            class="w-full mt-4 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Icon icon="mdi:plus" class="h-4 w-4" />
+                            Add Status
+                        </button>
+                        
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Status Modal -->
+    <div v-if="showStatusModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex min-h-screen items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="showStatusModal = false"></div>
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-900">Record Status</h3>
+                    <p class="text-sm text-gray-500 mt-1">Record a status for this order</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select v-model="form.order_status_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option :value="null">Select status...</option>
+                                <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                            </select>
+                        </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea v-model="paymentForm.notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Optional notes..."></textarea>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+                    <button @click="showStatusModal = false" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                   
+                    <button @click="recordStatus" :disabled="submittingStatus" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2">
+                        <span v-if="submittingStatus" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span>Record Status</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- Status Change Modal -->
+    <div v-if="showStatusModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex min-h-screen items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="showStatusModal = false"></div>
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-900">Change Status</h3>
+                    <p class="text-sm text-gray-500 mt-1">Update the order status</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">New Status</label>
+                        <select v-model="statusForm.order_status_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option :value="null">Select status...</option>
+                            <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status Date</label>
+                        <input v-model="statusForm.status_date" type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea v-model="statusForm.notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Reason for status change..."></textarea>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+                    <button @click="showStatusModal = false" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button @click="changeStatus" :disabled="submittingStatus" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2">
+                        <span v-if="submittingStatus" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span>Save Status</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div v-if="showPaymentModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex min-h-screen items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="showPaymentModal = false"></div>
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-900">Record Payment</h3>
+                    <p class="text-sm text-gray-500 mt-1">Record a payment for this order</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                        <select v-model="paymentForm.payment_method_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option :value="null">Select payment method...</option>
+                            <option v-for="pm in paymentMethods" :key="pm.id" :value="pm.id">{{ pm.name }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input v-model.number="paymentForm.amount" type="number" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
+                        <input v-model="paymentForm.payment_date" type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Number</label>
+                        <input v-model="paymentForm.transaction_id" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Transaction ID, check number, etc.">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea v-model="paymentForm.notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Optional notes..."></textarea>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+                    <button @click="showPaymentModal = false" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button @click="recordPayment" :disabled="submittingPayment" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2">
+                        <span v-if="submittingPayment" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span>Record Payment</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -417,8 +573,28 @@ const customers = ref([]);
 const channels = ref([]);
 const warehouses = ref([]);
 const statuses = ref([]);
+const paymentMethods = ref([]);
 const selectedCustomer = ref(null);
 const customerQuery = ref('');
+const showStatusModal = ref(false);
+const showPaymentModal = ref(false);
+const showPaymentHistory = ref(false);
+const submittingStatus = ref(false);
+const submittingPayment = ref(false);
+
+const statusForm = reactive({
+    order_status_id: null,   
+    status_date: new Date().toISOString().substr(0, 10), 
+    notes: ''
+});
+
+const paymentForm = reactive({
+    payment_method_id: null,
+    amount: 0,
+    payment_date: new Date().toISOString().substr(0, 10),
+    transaction_id: '',
+    notes: ''
+});
 
 const productSearch = ref('');
 const searchResults = ref([]);
@@ -438,8 +614,31 @@ const form = reactive({
     shipping: 0,
     notes: '',
     items: [],
+    payments: [],
     created_at: null,
     order_date: new Date().toISOString().substr(0, 10)
+});
+
+
+// Computed properties for payments (sorted by date - newest first)
+const orderPayments = computed(() => {
+    return (form.payments || []).sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date));
+});
+
+const paidAmount = computed(() => {
+    return orderPayments.value.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+});
+
+const balanceAmount = computed(() => {
+    return totals.value.total - paidAmount.value;
+});
+
+// Watch for payment modal to open
+watch(showPaymentModal, (isOpen) => {
+    if (isOpen) {
+        // Set default amount to remaining balance
+        paymentForm.amount = Math.max(0, balanceAmount.value);
+    }
 });
 
 // Watch selected customer to update form
@@ -532,16 +731,18 @@ const removeItem = (index) => {
 
 const fetchInitialData = async () => {
     try {
-        // Fetch channels and warehouses first
-        const [chanRes, whRes, statusRes] = await Promise.all([
+        // Fetch channels, warehouses, statuses and payment methods
+        const [chanRes, whRes, statusRes, pmRes] = await Promise.all([
             api.get('/sales-channels', { params: { per_page: -1 } }),
             api.get('/warehouses', { params: { per_page: -1 } }),
             api.get('/order-statuses', { params: { per_page: -1 } }),
+            api.get('/payment-methods', { params: { per_page: -1 } }),
         ]);
         
         channels.value = chanRes.data.data;
         warehouses.value = whRes.data.data;
         statuses.value = statusRes.data.data;
+        paymentMethods.value = pmRes.data.data;
         
         if (channels.value.length > 0) form.sales_channel_id = channels.value[0].id;
         // if (warehouses.value.length > 0) form.warehouse_id = warehouses.value[0].id; // Don't pre-set warehouse
@@ -570,6 +771,8 @@ const fetchOrder = async () => {
             notes: order.notes,
             created_at: order.created_at,
             order_date: order.order_date ? order.order_date.substr(0, 10) : new Date().toISOString().substr(0, 10),
+            payments: order.payments || [],
+            status_histories: order.status_histories || [],
             items: order.items.map(item => ({
                 product_id: item.product_id,
                 product_entry_id: item.product_entry_id,
@@ -598,34 +801,94 @@ const submit = async () => {
     try {
         if (isEditing.value) {
             await api.put(`/orders/${route.params.id}`, form);
+            alert('Order updated successfully!');
+            fetchOrder();
         } else {
             await api.post('/orders', form);
+            router.push({ name: 'Orders' });
         }
-        router.push({ name: 'Orders' });
     } catch (error) {
-        alert(error.response?.data?.message || 'Failed to create order');
+        alert(error.response?.data?.message || 'Failed to save order');
     } finally {
         submitting.value = false;
     }
 };
 
-const confirmOrder = async () => {
-    if (!confirm('Confirm this order? This will deduct stock from the selected batches.')) return;
+const recordStatus = async () => {
+    if (!statusForm.order_status_id) {
+        alert('Please select a order status');
+        return;
+    }   
+        
+};
+
+const changeStatus = async () => {
+    if (!statusForm.order_status_id) {
+        alert('Please select a status');
+        return;
+    }
+    
+    submittingStatus.value = true;
     try {
-        await api.post(`/orders/${route.params.id}/confirm`);
+        // Add status history entry (saves directly to status_histories table)
+        await api.post(`/orders/${route.params.id}/status-history`, {
+            order_status_id: statusForm.order_status_id,
+            changed_at: statusForm.status_date,
+            notes: statusForm.notes
+        });
+        
+        alert('Status added to history successfully!');
+        showStatusModal.value = false;
+        
+        // Reset form
+        statusForm.order_status_id = null;
+        statusForm.notes = '';
+        statusForm.status_date = new Date().toISOString().substr(0, 10);
+        
+        // Refresh order data
         fetchOrder();
     } catch (error) {
-        alert(error.response?.data?.message || 'Failed to confirm order');
+        alert(error.response?.data?.message || 'Failed to add status');
+    } finally {
+        submittingStatus.value = false;
     }
 };
 
-const cancelOrder = async () => {
-    if (!confirm('Cancel this order? Stock reserved (if any) will be released.')) return;
+const recordPayment = async () => {
+    if (!paymentForm.payment_method_id) {
+        alert('Please select a payment method');
+        return;
+    }
+    if (!paymentForm.amount || paymentForm.amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+    
+    submittingPayment.value = true;
     try {
-        await api.post(`/orders/${route.params.id}/cancel`);
+        await api.post('/orders/payment', {
+            sales_order_id: route.params.id,
+            payment_method_id: paymentForm.payment_method_id,
+            amount: paymentForm.amount,
+            payment_date: paymentForm.payment_date,
+            transaction_id: paymentForm.transaction_id,
+            notes: paymentForm.notes
+        });
+        
+        alert('Payment recorded successfully!');
+        showPaymentModal.value = false;
+        
+        paymentForm.payment_method_id = null;
+        paymentForm.amount = 0;
+        paymentForm.transaction_id = '';
+        paymentForm.notes = '';
+        paymentForm.payment_date = new Date().toISOString().substr(0, 10);
+        
         fetchOrder();
     } catch (error) {
-        alert(error.response?.data?.message || 'Failed to cancel order');
+        alert(error.response?.data?.message || 'Failed to record payment');
+    } finally {
+        submittingPayment.value = false;
     }
 };
 

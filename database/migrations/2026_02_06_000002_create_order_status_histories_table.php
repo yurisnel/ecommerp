@@ -14,6 +14,7 @@ return new class extends Migration
             $table->unsignedBigInteger('order_status_id');
             $table->unsignedBigInteger('changed_by')->nullable();
             $table->timestamp('changed_at')->useCurrent();
+            $table->text('notes')->nullable();
             $table->timestamps();
 
             $table->foreign('sales_order_id')->references('id')->on('sales_orders')->onDelete('cascade');

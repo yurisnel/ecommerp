@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->string('payment_number', 50)->unique();
             $table->foreignId('sales_order_id')->constrained()->onDelete('cascade');
             $table->enum('payment_method', ['cash', 'credit_card', 'debit_card', 'bank_transfer', 'paypal', 'other']);
             $table->decimal('amount', 12, 2);
