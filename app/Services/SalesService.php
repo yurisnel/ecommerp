@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
+use App\Enums\EOrderStatus;
+use App\Events\OrderStatusChanged;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\Payment;
 use App\Models\OrderStatus;
 use App\Models\OrderStatusHistory;
-use App\Models\StockMovement;
-use App\Models\SalesChannel;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -35,7 +35,7 @@ class SalesService
     public function createSalesOrder(array $data): SalesOrder
     {
         DB::beginTransaction();
-        
+
         try {
             // Generate order number if not provided
             if (!isset($data['order_number'])) {
@@ -45,15 +45,16 @@ class SalesService
             // Set order date if not provided
             if (!isset($data['order_date'])) {
                 $data['order_date'] = now();
-            }
+            }           
 
             // Create sales order
+            $orderStatusId = OrderStatus::where('slug', EOrderStatus::PENDING)->first()->id ?? null;
             $order = SalesOrder::create([
                 'order_number' => $data['order_number'],
                 'customer_id' => $data['customer_id'] ?? null,
                 'sales_channel_id' => $data['sales_channel_id'],
                 'warehouse_id' => $data['warehouse_id'],
-                'order_status_id' => $data['order_status_id'] ?? null,
+                'order_status_id' => $orderStatusId,
                 'subtotal' => 0,
                 'tax' => $data['tax'] ?? 0,
                 'discount' => $data['discount'] ?? 0,
@@ -77,25 +78,18 @@ class SalesService
             $order->subtotal = $subtotal;
             $order->total = $subtotal + $order->tax + $order->shipping - $order->discount;
             $order->save();
+            
+            // Create initial status history
+            $history = new OrderStatusHistory();
+            $history->sales_order_id = $order->id;
+            $history->order_status_id = $orderStatusId;
+            $history->changed_by = auth()->id();
+            $history->changed_at = now();
 
-            // Create initial status history (if matching status exists)
-            try {
-                $statusSlug = $order->status;
-                $statusModel = OrderStatus::where('slug', $statusSlug)->first();
-                if ($statusModel) {
-                    OrderStatusHistory::create([
-                        'sales_order_id' => $order->id,
-                        'order_status_id' => $statusModel->id,
-                        'changed_by' => $order->created_by ?? auth()->id(),
-                        'changed_at' => now(),
-                    ]);
-                }
-            } catch (\Exception $e) {
-                // Don't break order creation if history logging fails
-            }
+            $history->save();
 
             DB::commit();
-            
+
             return $order->fresh(['items.product', 'customer', 'salesChannel', 'warehouse']);
         } catch (Exception $e) {
             DB::rollBack();
@@ -138,169 +132,49 @@ class SalesService
             'notes' => $data['notes'] ?? null,
         ]);
     }
+   
 
     /**
-     * Confirm sales order and deduct inventory
-     * 
-     * @param int $orderId
-     * @return SalesOrder
-     * @throws Exception
+     * Transition order to a new status with validation
      */
-    public function confirmOrder(int $orderId): SalesOrder
+    public function updateStatus(int $orderId, $data): SalesOrder
     {
+        $toStatus = $data['order_status'] ?? null;
         DB::beginTransaction();
-        
+
         try {
-            $order = SalesOrder::with('items')->findOrFail($orderId);
+            $order = SalesOrder::with('orderStatus')->findOrFail($orderId);
 
-            if ($order->status !== 'pending') {
-                throw new Exception("Only pending orders can be confirmed");
+            $fromStatus = $order->orderStatus->slug ?? null;
+           
+            if (!EOrderStatus::isValidTransition($fromStatus, $toStatus)) {
+                throw new Exception("Cannot transition from {$fromStatus} to {$toStatus}");
             }
 
-            // Process each item
-            foreach ($order->items as $item) {
-                // Release reservation
-                $this->inventoryService->releaseReservedInventory(
-                    $item->product_id,
-                    $order->warehouse_id,
-                    $item->quantity
-                );
+            $newStatus = OrderStatus::where('slug', $toStatus)->firstOrFail();
+            $order->order_status_id = $newStatus->id;
 
-                // Deduct from inventory
-                $this->inventoryService->updateInventory(
-                    $item->product_id,
-                    $order->warehouse_id,
-                    $item->quantity,
-                    'subtract'
-                );
-
-                // Create stock movement
-                $this->inventoryService->createStockMovement([
-                    'product_id' => $item->product_id,
-                    'warehouse_id' => $order->warehouse_id,
-                    'product_entry_id' => $item->product_entry_id,
-                    'type' => 'out',
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'reference_type' => 'sales_order',
-                    'reference_id' => $order->id,
-                    'notes' => 'Sale order: ' . $order->order_number,
-                    'created_by' => auth()->id(),
-                    'movement_date' => now(),
-                ]);
-            }
-
-            // Update order status
-            $old = $order->status;
-            $order->status = 'confirmed';
             $order->save();
 
-            // Log history
-            try {
-                $statusModel = OrderStatus::where('slug', $order->status)->first();
-                if ($statusModel) {
-                    OrderStatusHistory::create([
-                        'sales_order_id' => $order->id,
-                        'order_status_id' => $statusModel->id,
-                        'changed_by' => auth()->id(),
-                        'changed_at' => now(),
-                    ]);
-                }
-            } catch (\Exception $e) {
-                // ignore
-            }
+            $history = new OrderStatusHistory();
+            $history->sales_order_id = $order->id;
+            $history->order_status_id = $newStatus->id;
+            $history->changed_by = auth()->id();
+            $history->changed_at = $data['changed_at'] ?? now();
+            $history->notes = $data['notes'] ?? null;
 
+            $history->save();
             DB::commit();
+            event(new OrderStatusChanged($order, $fromStatus, $toStatus));
             
-            return $order->fresh();
+            return $order->fresh(['orderStatus', 'statusHistories.status', 'statusHistories.changer']);
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }
     }
 
-    /**
-     * Cancel sales order and release inventory
-     * 
-     * @param int $orderId
-     * @return SalesOrder
-     * @throws Exception
-     */
-    public function cancelOrder(int $orderId): SalesOrder
-    {
-        DB::beginTransaction();
-        
-        try {
-            $order = SalesOrder::with('items')->findOrFail($orderId);
-
-            if (in_array($order->status, ['delivered', 'cancelled'])) {
-                throw new Exception("Cannot cancel {$order->status} orders");
-            }
-
-            // Release reserved inventory for pending orders
-            if ($order->status === 'pending') {
-                foreach ($order->items as $item) {
-                    $this->inventoryService->releaseReservedInventory(
-                        $item->product_id,
-                        $order->warehouse_id,
-                        $item->quantity
-                    );
-                }
-            }
-
-            // Return inventory for confirmed/processing orders
-            if (in_array($order->status, ['confirmed', 'processing', 'shipped'])) {
-                foreach ($order->items as $item) {
-                    $this->inventoryService->updateInventory(
-                        $item->product_id,
-                        $order->warehouse_id,
-                        $item->quantity,
-                        'add'
-                    );
-
-                    // Create stock movement for return
-                    $this->inventoryService->createStockMovement([
-                        'product_id' => $item->product_id,
-                        'warehouse_id' => $order->warehouse_id,
-                        'type' => 'in',
-                        'quantity' => $item->quantity,
-                        'reference_type' => 'sales_order_cancellation',
-                        'reference_id' => $order->id,
-                        'notes' => 'Order cancellation: ' . $order->order_number,
-                        'created_by' => auth()->id(),
-                        'movement_date' => now(),
-                    ]);
-                }
-            }
-
-            // Update order status
-            $old = $order->status;
-            $order->status = 'cancelled';
-            $order->save();
-
-            // Log history
-            try {
-                $statusModel = OrderStatus::where('slug', $order->status)->first();
-                if ($statusModel) {
-                    OrderStatusHistory::create([
-                        'sales_order_id' => $order->id,
-                        'order_status_id' => $statusModel->id,
-                        'changed_by' => auth()->id(),
-                        'changed_at' => now(),
-                    ]);
-                }
-            } catch (\Exception $e) {
-                // ignore
-            }
-
-            DB::commit();
-            
-            return $order->fresh();
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
+   
 
     /**
      * Process payment for sales order
@@ -312,14 +186,14 @@ class SalesService
     public function processPayment(array $data): Payment
     {
         DB::beginTransaction();
-        
+
         try {
             $order = SalesOrder::findOrFail($data['sales_order_id']);
 
-            $payment = Payment::create([               
+            $payment = Payment::create([
                 'sales_order_id' => $data['sales_order_id'],
                 'payment_method_id' => $data['payment_method_id'],
-                'amount' => $data['amount'],                
+                'amount' => $data['amount'],
                 'status' => $data['status'] ?? 'completed',
                 'transaction_id' => $data['transaction_id'] ?? null,
                 'notes' => $data['notes'] ?? null,
@@ -328,7 +202,7 @@ class SalesService
             ]);
 
             DB::commit();
-            
+
             return $payment->fresh(['salesOrder']);
         } catch (Exception $e) {
             DB::rollBack();
@@ -354,7 +228,7 @@ class SalesService
         return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
-    
+
 
     /**
      * Get order statistics
@@ -392,7 +266,7 @@ class SalesService
             $query->whereHas('payments', function ($pq) use ($filters) {
                 $pq->where('payment_method_id', $filters['payment_method_id']);
             });
-        }      
+        }
 
         // All time totals (with filters)
         $totalOrders = $query->clone()->count();
@@ -405,7 +279,7 @@ class SalesService
         $totalShipping = $query->clone()->sum('shipping');
         $netProfit = $totalSales - $totalDiscount - $totalTax - $totalShipping;
 
-        return [           
+        return [
             'total_orders' => $totalOrders,
             'total_sales' => (float) $totalSales,
             'net_profit' => (float) $netProfit

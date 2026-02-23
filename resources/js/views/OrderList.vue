@@ -174,8 +174,13 @@
             </template>
 
             <template #payment_method="{ item }">
-                <div v-if="item.payments && item.payments.length > 0">
-                    <span class="text-sm text-gray-700">{{ item.payments[0].paymentMethod?.name || 'N/A' }}</span>
+                <div v-if="item.payments && item.payments.length > 0" class="text-xs">
+                    <div class="font-medium text-gray-700">
+                        {{ getPaymentMethods(item.payments) }}
+                    </div>
+                    <div class="text-emerald-600 font-semibold mt-0.5">
+                        ${{ getTotalPaid(item.payments).toFixed(2) }}
+                    </div>
                 </div>
                 <span v-else class="text-gray-400 text-sm italic">Not paid</span>
             </template>
@@ -351,6 +356,18 @@ const debouncedFetch = debounce(() => {
 const formatDate = (date) => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString();
+};
+
+// Helper functions for payments
+const getPaymentMethods = (payments) => {
+    if (!payments || payments.length === 0) return '';
+    const methods = [...new Set(payments.map(p => p.payment_method?.name || p.paymentMethod?.name || 'Unknown'))];
+    return methods.join(', ');
+};
+
+const getTotalPaid = (payments) => {
+    if (!payments || payments.length === 0) return 0;
+    return payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
 };
 
 onMounted(() => {

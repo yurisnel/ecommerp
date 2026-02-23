@@ -15,6 +15,7 @@ class SalesOrderFactory extends Factory
 {
     public function definition(): array
     {
+        $tax = 0;
         return [
             'order_number' => 'ORD-' . $this->faker->unique()->numberBetween(100000, 999999),
             'customer_id' => Customer::factory(),
@@ -22,11 +23,11 @@ class SalesOrderFactory extends Factory
             'warehouse_id' => Warehouse::factory(),
             'order_status_id' => OrderStatus::where('slug', 'pending')->first()?->id ?? 1,
             'order_date' => $this->faker->dateTimeBetween('-1 year', 'now'),            
-            'subtotal' => $subtotal = $this->faker->randomFloat(2, 50, 1800),
-            'tax' => $tax = $subtotal * 0.1,
-            'discount' => $discount = $this->faker->randomFloat(2, 0, 20),
-            'shipping' => $shipping = $this->faker->randomFloat(2, 10, 50),
-            'total' => $subtotal + $tax + $shipping - $discount,
+            'subtotal' => $subtotal = $this->faker->randomFloat(2, 50, 200),
+            'tax' => $taxValue = $subtotal * $tax,
+            'discount' => $discount = $this->faker->randomFloat(2, 0, 5),
+            'shipping' => $shipping = $this->faker->randomFloat(2, 10, 3),
+            'total' => $subtotal + $taxValue + $shipping - $discount,
             'shipping_address' => $this->faker->address,
             'billing_address' => $this->faker->address,
         ];
@@ -50,17 +51,19 @@ class SalesOrderFactory extends Factory
             }
 
             // Create sales order items (1-5 items per order)
-            $itemCount = fake()->numberBetween(1, 5);
+            $itemCount = fake()->numberBetween(1, 3);
             $products = Product::inRandomOrder()->limit($itemCount)->get();
-            
+            $tax = 0;
+            $subtotalProducts = 0;
             foreach ($products as $product) {
-                $quantity = fake()->numberBetween(1, 10);
-                $unitPrice = fake()->randomFloat(2, 10, 500);
+                $quantity = fake()->numberBetween(1, 5);
+                $unitPrice = fake()->randomFloat(2, 10, 20);
                 $unitCost = $unitPrice * fake()->randomFloat(1, 0.5, 0.8);
                 $discount = fake()->randomFloat(2, 0, $unitPrice * 0.2);
                 $subtotal = ($unitPrice * $quantity) - $discount;
-                $tax = $subtotal * 0.1;
-                $total = $subtotal + $tax;
+                $taxValue = $subtotal * $tax;
+                $total = round($subtotal + $taxValue, 2);
+                $subtotalProducts += $total;
 
                 SalesOrderItem::create([
                     'sales_order_id' => $salesOrder->id,
@@ -69,12 +72,17 @@ class SalesOrderFactory extends Factory
                     'unit_price' => $unitPrice,
                     'unit_cost' => $unitCost,
                     'discount' => $discount,
-                    'tax' => $tax,
+                    'tax' => $taxValue,
                     'subtotal' => $subtotal,
                     'total' => $total,
                     'notes' => fake()->optional(0.3)->sentence(),
                 ]);
             }
+    
+             $salesOrder->subtotal = $subtotalProducts;
+             $salesOrder->tax = $salesOrder->subtotal * $tax;
+             $salesOrder->total = $salesOrder->subtotal + $salesOrder->tax + $salesOrder->shipping - $salesOrder->discount;
+             $salesOrder->save();
         });
     }
 }

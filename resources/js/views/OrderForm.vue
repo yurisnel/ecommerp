@@ -393,6 +393,12 @@
                         <div class="h-24 w-24 bg-indigo-50 rounded-full -mr-12 -mt-12 opacity-50"></div>
                     </div>
                     <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2 relative z-10">Order Status</h3>
+                    <div v-if="currentStatus" class="mb-4 flex items-center gap-2 relative z-10">
+                        <span class="text-xs font-bold text-gray-500 uppercase">Current:</span>
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold text-white" :style="{ backgroundColor: currentStatus.color || '#6b7280' }">
+                            {{ currentStatus.name }}
+                        </span>
+                    </div>
                     <div class="space-y-4 text-sm relative z-10">                    
                         <div class="mt-4">                            
                             <ul class="divide-y divide-gray-100 text-sm">
@@ -428,43 +434,7 @@
         </div>
     </div>
 
-<!-- Status Modal -->
-    <div v-if="showStatusModal" class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex min-h-screen items-center justify-center p-4">
-            <div class="fixed inset-0 bg-black bg-opacity-50" @click="showStatusModal = false"></div>
-            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
-                <div class="p-6 border-b border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-900">Record Status</h3>
-                    <p class="text-sm text-gray-500 mt-1">Record a status for this order</p>
-                </div>
-                <div class="p-6 space-y-4">
-                    <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select v-model="form.order_status_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                                <option :value="null">Select status...</option>
-                                <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
-                            </select>
-                        </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                        <textarea v-model="paymentForm.notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Optional notes..."></textarea>
-                    </div>
-                </div>
-                <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
-                    <button @click="showStatusModal = false" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-                   
-                    <button @click="recordStatus" :disabled="submittingStatus" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2">
-                        <span v-if="submittingStatus" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span>Record Status</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     
-
     <!-- Status Change Modal -->
     <div v-if="showStatusModal" class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex min-h-screen items-center justify-center p-4">
@@ -477,9 +447,9 @@
                 <div class="p-6 space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">New Status</label>
-                        <select v-model="statusForm.order_status_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <select v-model="statusForm.order_status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                             <option :value="null">Select status...</option>
-                            <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                            <option v-for="s in statuses" :key="s.slug" :value="s.slug">{{ s.name }}</option>
                         </select>
                     </div>
                     <div>
@@ -583,7 +553,7 @@ const submittingStatus = ref(false);
 const submittingPayment = ref(false);
 
 const statusForm = reactive({
-    order_status_id: null,   
+    order_status: null,   
     status_date: new Date().toISOString().substr(0, 10), 
     notes: ''
 });
@@ -608,7 +578,7 @@ const form = reactive({
     customer_id: null,
     sales_channel_id: null,
     warehouse_id: null,
-    order_status_id: null,
+    order_status: null,
     tax: 0,
     discount: 0,
     shipping: 0,
@@ -652,7 +622,7 @@ const isValidOrder = computed(() => {
 
 // Get current status object
 const currentStatus = computed(() => {
-    return statuses.value.find(s => s.id === form.order_status_id) || null;
+    return statuses.value.find(s => s.slug === form.order_status) || null;
 });
 
 // Totals calculation
@@ -764,7 +734,6 @@ const fetchOrder = async () => {
             customer_id: order.customer_id,
             sales_channel_id: order.sales_channel_id,
             warehouse_id: order.warehouse_id,
-            order_status_id: order.order_status_id,
             tax: Number(order.tax),
             discount: Number(order.discount),
             shipping: Number(order.shipping),
@@ -814,16 +783,9 @@ const submit = async () => {
     }
 };
 
-const recordStatus = async () => {
-    if (!statusForm.order_status_id) {
-        alert('Please select a order status');
-        return;
-    }   
-        
-};
 
 const changeStatus = async () => {
-    if (!statusForm.order_status_id) {
+    if (!statusForm.order_status) {
         alert('Please select a status');
         return;
     }
@@ -831,8 +793,8 @@ const changeStatus = async () => {
     submittingStatus.value = true;
     try {
         // Add status history entry (saves directly to status_histories table)
-        await api.post(`/orders/${route.params.id}/status-history`, {
-            order_status_id: statusForm.order_status_id,
+        await api.post(`/orders/${route.params.id}/update-status`, {
+            order_status: statusForm.order_status,
             changed_at: statusForm.status_date,
             notes: statusForm.notes
         });
@@ -841,7 +803,7 @@ const changeStatus = async () => {
         showStatusModal.value = false;
         
         // Reset form
-        statusForm.order_status_id = null;
+        statusForm.order_status = null;
         statusForm.notes = '';
         statusForm.status_date = new Date().toISOString().substr(0, 10);
         
@@ -891,6 +853,7 @@ const recordPayment = async () => {
         submittingPayment.value = false;
     }
 };
+
 
 const formatDate = (date) => {
     if (!date) return 'N/A';

@@ -96,9 +96,8 @@ Route::prefix('v1')->group(function () {
     // Sales & Orders
     Route::get('orders/stats', [SalesOrderController::class, 'stats']);
     Route::post('orders/payment', [SalesOrderController::class, 'processPayment']);
-    Route::post('orders/{id}/status-history', [SalesOrderController::class, 'addStatusHistory']);
-    Route::post('orders/{id}/confirm', [SalesOrderController::class, 'confirm']);
-    Route::post('orders/{id}/cancel', [SalesOrderController::class, 'cancel']);
+    Route::post('orders/{id}/update-status', [SalesOrderController::class, 'updateStatus']);
+
     Route::apiResource('orders', SalesOrderController::class);
     Route::apiResource('sales-channels', SalesChannelController::class);
 

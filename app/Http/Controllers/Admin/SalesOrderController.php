@@ -96,55 +96,22 @@ class SalesOrderController extends BaseController
         return $this->successResponse($order, 'Sales order created successfully', 201);
     }
 
-    /**
-     * Confirm sales order
-     */
-    public function confirm(int $id): JsonResponse
-    {
-        $order = $this->salesService->confirmOrder($id);
-        return $this->successResponse($order, 'Order confirmed successfully');
-    }
-
-    /**
-     * Cancel sales order
-     */
-    public function cancel(int $id): JsonResponse
-    {
-        $order = $this->salesService->cancelOrder($id);
-        return $this->successResponse($order, 'Order cancelled successfully');
-    }
 
     /**
      * Add status history entry
      */
-    public function addStatusHistory(Request $request, int $id): JsonResponse
+    public function updateStatus(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'order_status_id' => 'required|exists:order_statuses,id',
+            'order_status' => 'required|exists:order_statuses,slug',
             'changed_at' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
 
-        $order = $this->service->getById($id);
-        if (!$order) {
-            return $this->errorResponse('Order not found', 404);
-        }
-
-        $history = \App\Models\OrderStatusHistory::create([
-            'sales_order_id' => $id,
-            'order_status_id' => $validated['order_status_id'],
-            'changed_by' => auth()->id() ?? 1,
-            'changed_at' => $validated['changed_at'] ?? now(),
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        // Also update the order's current status
-        $order->order_status_id = $validated['order_status_id'];
-        $order->save();
-
+        $history = $this->salesService->updateStatus($id, $validated);
         $history->load('status');
 
-        return $this->successResponse($history, 'Status history added successfully', 201);
+        return $this->successResponse($history, 'Status update successfully', 201);        
     }
 
     /**
@@ -176,7 +143,6 @@ class SalesOrderController extends BaseController
             'billing_address_id' => 'nullable|exists:customer_addresses,id',
             'shipping_method_id' => 'nullable|exists:shipping_methods,id',
             'discount_rule_id' => 'nullable|exists:discount_rules,id',
-            'order_status_id' => 'required|numeric',
             'tax' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'shipping' => 'nullable|numeric|min:0',
@@ -192,47 +158,5 @@ class SalesOrderController extends BaseController
             'items.*.discount' => 'nullable|numeric|min:0',
             'items.*.tax' => 'nullable|numeric|min:0',
         ]);
-    }
-
-    /**
-     * Update an order and record status history when changed
-     */
-    public function update(Request $request, int $id): JsonResponse
-    {
-        $validated = $this->validateRequest($request, $id);
-
-        $order = $this->service->getById($id);
-        if (!$order) {
-            return $this->errorResponse('Order not found', 404);
-        }
-
-        $oldStatus = $order->status;
-
-        $result = $this->service->update($id, $validated);
-
-        if (!$result) {
-            return $this->errorResponse('Order not found', 404);
-        }
-
-        $order = $this->service->getById($id);
-
-        // If status changed, log history
-        if (isset($validated['status']) && $validated['status'] !== $oldStatus) {
-            try {
-                $statusModel = OrderStatus::where('slug', $validated['status'])->first();
-                if ($statusModel) {
-                    OrderStatusHistory::create([
-                        'sales_order_id' => $order->id,
-                        'order_status_id' => $statusModel->id,
-                        'changed_by' => auth()->id(),
-                        'changed_at' => now(),
-                    ]);
-                }
-            } catch (\Exception $e) {
-                // ignore logging failures
-            }
-        }
-
-        return $this->successResponse($order, 'Order updated successfully');
     }
 }
