@@ -39,10 +39,23 @@
                     </div>
                 </div>
             </div>
+            
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Net Profit</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Investment</p>
+                        <p class="text-lg font-bold text-blue-600">${{ stats.total_cost_amount.toFixed(2) }}</p>
+                    </div>
+                    <div class="p-2 bg-blue-50 rounded-lg">
+                        <Icon icon="mdi:chart-line" class="h-5 w-5 text-blue-600" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Profit</p>
                         <p class="text-lg font-bold text-blue-600">${{ stats.total_profit_amount.toFixed(2) }}</p>
                     </div>
                     <div class="p-2 bg-blue-50 rounded-lg">
@@ -246,6 +259,7 @@ const filters = reactive({
 const stats = ref({
     count_orders: 0,
     total_sales_amount: 0,
+    total_cost_amount: 0,
     total_profit_amount: 0
 });
 
@@ -358,7 +372,7 @@ const debouncedFetch = debounce(() => {
 
 const formatDate = (date) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString();
+    return new Date(date).toLocaleString();
 };
 
 // Helper functions for payments

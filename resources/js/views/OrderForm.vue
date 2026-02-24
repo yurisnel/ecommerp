@@ -108,7 +108,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Order Date <span class="text-red-500">*</span></label>
                             <input 
                                 v-model="form.order_date" 
-                                type="date"
+                                type="datetime-local"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             >
                         </div>
@@ -396,8 +396,11 @@
                 <div v-if="isEditing" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-hidden relative">
                     <div class="absolute top-0 right-0 p-2">
                         <div class="h-24 w-24 bg-indigo-50 rounded-full -mr-12 -mt-12 opacity-50"></div>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2 relative z-10">Order Status</h3>
+                    </div>                  
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2 relative z-10 flex items-center gap-2">
+                        <Icon icon="mdi:check-circle" class="h-5 w-5 text-emerald-600" />
+                        Order Status
+                    </h3>
                     <div v-if="currentStatus" class="mb-4 flex items-center gap-2 relative z-10">
                         <span class="text-xs font-bold text-gray-500 uppercase">Current:</span>
                         <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold text-white" :style="{ backgroundColor: currentStatus.color || '#6b7280' }">
@@ -459,7 +462,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Status Date</label>
-                        <input v-model="statusForm.status_date" type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <input v-model="statusForm.status_date" type="datetime-local" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -500,7 +503,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
-                        <input v-model="paymentForm.payment_date" type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <input v-model="paymentForm.payment_date" type="datetime-local" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Number</label>
@@ -529,6 +532,7 @@ import { useRoute, useRouter } from 'vue-router';
 import api from '../axios';
 import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
+import swal from '../utils/swal';
 import {
     Combobox,
     ComboboxInput,
@@ -560,14 +564,14 @@ const submittingPayment = ref(false);
 
 const statusForm = reactive({
     order_status: null,   
-    status_date: new Date().toISOString().substr(0, 10), 
+    status_date: new Date().toISOString().slice(0, 16), 
     notes: ''
 });
 
 const paymentForm = reactive({
     payment_method_id: null,
     amount: 0,
-    payment_date: new Date().toISOString().substr(0, 10),
+    payment_date: new Date().toISOString().slice(0, 16),
     transaction_id: '',
     notes: ''
 });
@@ -592,7 +596,7 @@ const form = reactive({
     items: [],
     payments: [],
     created_at: null,
-    order_date: new Date().toISOString().substr(0, 10)
+    order_date: new Date().toISOString().slice(0, 16)
 });
 
 
@@ -628,7 +632,7 @@ const isValidOrder = computed(() => {
 
 // Get current status object
 const currentStatus = computed(() => {
-    return statuses.value.find(s => s.slug === form.order_status) || null;
+    return statuses.value.find(s => s.slug === form.order_status.slug) || null;
 });
 
 // Totals calculation
@@ -712,7 +716,7 @@ const removeItem = async (index) => {
             // Refresh order to get updated totals
             fetchOrder();
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to remove item');
+            swal.error(error.response?.data?.message || 'Failed to remove item');
         }
     } else {
         // Just remove from local array when creating new order
@@ -754,7 +758,7 @@ const openStatusModal = () => {
     showStatusModal.value = true;
     statusForm.order_status = null;
     statusForm.notes = '';
-    statusForm.status_date = new Date().toISOString().substr(0, 10);
+    statusForm.status_date = new Date().toISOString().slice(0, 16);
     
     // Select first valid status by default
     if (validStatuses.value.length > 0) {
@@ -777,7 +781,7 @@ const fetchOrder = async () => {
             shipping: Number(order.shipping),
             notes: order.notes,
             created_at: order.created_at,
-            order_date: order.order_date ? order.order_date.substr(0, 10) : new Date().toISOString().substr(0, 10),
+            order_date: order.order_date ? order.order_date.slice(0, 16) : new Date().toISOString().slice(0, 16),
             payments: order.payments || [],
             status_histories: order.status_histories || [],
             items: order.items.map(item => ({
@@ -819,14 +823,14 @@ const submit = async () => {
     try {
         if (isEditing.value) {
             await api.put(`/orders/${route.params.id}`, form);
-            alert('Order updated successfully!');
+            swal.success('Order updated successfully!');
             fetchOrder();
         } else {
             await api.post('/orders', form);
             router.push({ name: 'Orders' });
         }
     } catch (error) {
-        alert(error.response?.data?.message || 'Failed to save order');
+        swal.error(error.response?.data?.message || 'Failed to save order');
     } finally {
         submitting.value = false;
     }
@@ -835,7 +839,7 @@ const submit = async () => {
 
 const changeStatus = async () => {
     if (!statusForm.order_status) {
-        alert('Please select a status');
+        swal.warning('Please select a status');
         return;
     }
     
@@ -848,18 +852,18 @@ const changeStatus = async () => {
             notes: statusForm.notes
         });
         
-        alert('Status added to history successfully!');
+        swal.success('Status added to history successfully!');
         showStatusModal.value = false;
         
         // Reset form
         statusForm.order_status = null;
         statusForm.notes = '';
-        statusForm.status_date = new Date().toISOString().substr(0, 10);
+        statusForm.status_date = new Date().toISOString().slice(0, 16);
         
         // Refresh order data
         fetchOrder();
     } catch (error) {
-        alert(error.response?.data?.message || 'Failed to add status');
+        swal.error(error.response?.data?.message || 'Failed to add status');
     } finally {
         submittingStatus.value = false;
     }
@@ -867,11 +871,11 @@ const changeStatus = async () => {
 
 const recordPayment = async () => {
     if (!paymentForm.payment_method_id) {
-        alert('Please select a payment method');
+        swal.warning('Please select a payment method');
         return;
     }
     if (!paymentForm.amount || paymentForm.amount <= 0) {
-        alert('Please enter a valid amount');
+        swal.warning('Please enter a valid amount');
         return;
     }
     
@@ -886,18 +890,18 @@ const recordPayment = async () => {
             notes: paymentForm.notes
         });
         
-        alert('Payment recorded successfully!');
+        swal.success('Payment recorded successfully!');
         showPaymentModal.value = false;
         
         paymentForm.payment_method_id = null;
         paymentForm.amount = 0;
         paymentForm.transaction_id = '';
         paymentForm.notes = '';
-        paymentForm.payment_date = new Date().toISOString().substr(0, 10);
+        paymentForm.payment_date = new Date().toISOString().slice(0, 16);
         
         fetchOrder();
     } catch (error) {
-        alert(error.response?.data?.message || 'Failed to record payment');
+        swal.error(error.response?.data?.message || 'Failed to record payment');
     } finally {
         submittingPayment.value = false;
     }

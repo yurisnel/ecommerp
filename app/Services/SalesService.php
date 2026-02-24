@@ -420,6 +420,7 @@ class SalesService
         return [
             'count_orders' => $countOrders,
             'total_sales_amount' => (float) $totalSales,
+            'total_cost_amount' => (float) $costProduct,
             'total_profit_amount' => (float) $netProfit
         ];
     }

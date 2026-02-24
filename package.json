@@ -23,6 +23,7 @@
         "cropperjs": "^1.6.2",
         "lodash": "^4.17.23",
         "pinia": "^3.0.4",
+        "sweetalert2": "^11.26.20",
         "vue": "^3.5.27",
         "vue-router": "^4.6.4"
     }
