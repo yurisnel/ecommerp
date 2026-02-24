@@ -131,7 +131,7 @@
 
                 <!-- Items Table -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div class="px-4 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <h3 class="text-lg font-medium text-gray-900">Order Items</h3>
                         <div v-if="!isEditing" class="relative">
                             <div class="flex items-center gap-2">
@@ -175,71 +175,76 @@
                     <table class="w-full text-left">
                         <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
                             <tr>
-                                <th class="px-6 py-3">Product / Batch</th>
-                                <th class="px-6 py-3 text-center">Qty</th>
-                                <th class="px-6 py-3 text-right">Price</th>
-                                <th class="px-6 py-3 text-right">Discount</th>
-                                <th class="px-6 py-3 text-right">Subtotal</th>
-                                <th v-if="!isEditing" class="px-6 py-3 text-center">Actions</th>
+                                <th class="px-4 py-3">Product / Batch</th>
+                                <th class="px-4 py-3 text-center">Qty</th>
+                                <th class="px-4 py-3 text-right">Price</th>
+                                <th class="px-4 py-3 text-right">Discount</th>
+                                <th class="px-4 py-3 text-right">Subtotal</th>
+                                <th v-if="!isEditing" class="px-4 py-3 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             <tr v-if="form.items.length === 0">
-                                <td colspan="6" class="px-6 py-12 text-center text-gray-400 italic font-medium">Search and select a product batch to start the order.</td>
+                                <td colspan="6" class="px-4 py-12 text-center text-gray-400 italic font-medium">Search and select a product batch to start the order.</td>
                             </tr>
                             <tr v-for="(item, index) in form.items" :key="index" class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-4">
                                     <div class="font-bold text-gray-900 group flex items-center gap-2">
                                         {{ item.product_name }}
                                         <span class="text-[10px] bg-gray-100 px-1 font-normal rounded">{{ item.batch_number }}</span>
                                     </div>
                                     <div class="text-xs text-gray-400 font-mono">{{ item.product_sku }}</div>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-4">
                                     <div class="flex justify-center">
                                         <input 
                                             v-if="!isEditing"
                                             v-model.number="item.quantity" 
-                                            type="number" min="0.01" step="0.01"
+                                            type="number" min="1" step="1"
                                             class="w-20 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
                                             @input="calculateTotal"
                                         >
                                         <span v-else class="font-bold text-gray-700">{{ item.quantity }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-right">
+                                <td class="px-4 py-4 text-right">
                                     <div class="flex items-center justify-end">
-                                        <span v-if="!isEditing" class="text-gray-400 mr-1">$</span>
+                                        <span v-if="!isEditing && false" class="text-gray-400 mr-1">$</span>
                                         <input 
-                                            v-if="!isEditing"
+                                            v-if="!isEditing && false"
                                             v-model.number="item.unit_price" 
-                                            type="number" min="0" step="0.01"
+                                            type="number" min="0" step="1"
                                             class="w-24 px-2 py-1 border border-gray-300 rounded text-right text-sm focus:ring-1 focus:indigo-500 outline-none"
                                             @input="calculateTotal"
                                         >
                                         <span v-else class="font-medium">${{ item.unit_price.toFixed(2) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-right">
+                                <td class="px-4 py-4 text-right">
                                     <div class="flex items-center justify-end">
                                         <span v-if="!isEditing" class="text-gray-400 mr-1">$</span>
                                         <input 
                                             v-if="!isEditing"
                                             v-model.number="item.discount" 
-                                            type="number" min="0" step="0.01"
+                                            type="number" min="0" step="1"
                                             class="w-20 px-2 py-1 border border-gray-300 rounded text-right text-sm focus:ring-1 focus:indigo-500 outline-none"
                                             @input="calculateTotal"
                                         >
                                         <span v-else class="text-rose-600 font-medium">-${{ item.discount.toFixed(2) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-right">
+                                <td class="px-4 py-4 text-right">
                                     <span class="font-black text-gray-900">
                                         ${{ (item.quantity * item.unit_price - item.discount).toFixed(2) }}
                                     </span>
                                 </td>
-                                <td v-if="!isEditing" class="px-4 py-4 text-center">
-                                    <button @click="removeItem(index)" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                                <td class="px-4 py-4 text-center">
+                                    <button 
+                                        @click="removeItem(index)" 
+                                        class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                        :title="isEditing && currentStatus?.slug !== 'pending' ? 'Cannot remove items from non-pending orders' : 'Remove item'"
+                                        :disabled="isEditing && currentStatus?.slug !== 'pending'"
+                                    >
                                         <Icon icon="mdi:trash-can" class="h-5 w-5" />
                                     </button>
                                 </td>
@@ -692,11 +697,31 @@ const addItem = (entry) => {
     searchResults.value = [];
 };
 
-const removeItem = (index) => {
-    form.items.splice(index, 1);
+const removeItem = async (index) => {
+    const item = form.items[index];
+    
+    // If editing and item has an ID, call API to delete
+    if (isEditing.value && item.id) {
+        if (!confirm('Are you sure you want to remove this item from the order?')) {
+            return;
+        }
+        
+        try {
+            await api.delete(`/orders/${route.params.id}/items/${item.id}`);
+            form.items.splice(index, 1);
+            // Refresh order to get updated totals
+            fetchOrder();
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to remove item');
+        }
+    } else {
+        // Just remove from local array when creating new order
+        form.items.splice(index, 1);
+    }
+    
     // Reset warehouse if no items left and not editing
     if (form.items.length === 0 && !isEditing.value) {
-        // form.warehouse_id = null; // Maybe keep it? Or reset? Let's keep it for now unless explicitly requested to reset.
+        // form.warehouse_id = null;
     }
 };
 
@@ -756,6 +781,7 @@ const fetchOrder = async () => {
             payments: order.payments || [],
             status_histories: order.status_histories || [],
             items: order.items.map(item => ({
+                id: item.id,
                 product_id: item.product_id,
                 product_entry_id: item.product_entry_id,
                 product_name: item.product?.name || 'Unknown',

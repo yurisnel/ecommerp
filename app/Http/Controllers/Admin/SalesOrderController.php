@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\OrderStatus;
 use App\Models\OrderStatusHistory;
+use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
 use App\Enums\EOrderStatus;
 
 class SalesOrderController extends BaseController
@@ -182,5 +184,53 @@ class SalesOrderController extends BaseController
             'current_status' => $currentStatus,
             'valid_transitions' => $validStatuses,
         ], 'Valid transitions retrieved successfully');
+    }
+
+    /**
+     * Delete an order item
+     */
+    public function deleteItem(int $orderId, int $itemId): JsonResponse
+    {
+        $item = SalesOrderItem::where('id', $itemId)
+            ->where('sales_order_id', $orderId)
+            ->first();
+
+        if (!$item) {
+            return $this->errorResponse('Order item not found', 404);
+        }
+
+        // Check if order is in editable status (pending)
+        $order = $this->service->getById($orderId, ['orderStatus']);
+        $currentStatus = $order->orderStatus->slug ?? '';
+        
+        if ($currentStatus !== EOrderStatus::PENDING) {
+            return $this->errorResponse('Cannot delete items from orders that are not in pending status', 400);
+        }
+
+        $item->delete();
+
+        // Recalculate order totals
+        $this->recalculateOrderTotals($orderId);
+
+        return $this->successResponse(null, 'Order item deleted successfully');
+    }
+
+    /**
+     * Recalculate order totals after item changes
+     */
+    protected function recalculateOrderTotals(int $orderId): void
+    {
+        $order = SalesOrder::with('items')->findOrFail($orderId);
+        
+        $subtotal = $order->items->sum('subtotal');
+        $discountTotal = $order->items->sum('discount');
+        $taxAmount = $order->items->sum('tax_amount');
+        $discountGlobal = $order->discount_global ?? 0;
+        
+        $order->subtotal = $subtotal;
+        $order->discount_total = $discountTotal + $discountGlobal;
+        $order->tax_amount = $taxAmount;
+        $order->total = $subtotal - $discountTotal - $discountGlobal + $taxAmount + ($order->shipping ?? 0);
+        $order->save();
     }
 }
