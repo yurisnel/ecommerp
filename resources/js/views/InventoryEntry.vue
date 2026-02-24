@@ -176,7 +176,7 @@
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Unit Cost (Inc. Tax) *</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-3 text-gray-400">$</span>
-                                    <input v-model.number="form.cost_per_unit" type="number" min="0" step="0.01" class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
+                                    <input v-model.number="form.unit_cost" type="number" min="0" step="0.01" class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
                                 </div>
                             </div>
 
@@ -185,7 +185,7 @@
                                 <label class="block text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">New Selling Price *</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-3 text-emerald-400">$</span>
-                                    <input v-model.number="form.selling_price" type="number" min="0" step="0.01" class="w-full pl-8 pr-4 py-3 border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-bold text-emerald-700">
+                                    <input v-model.number="form.unit_price" type="number" min="0" step="0.01" class="w-full pl-8 pr-4 py-3 border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-bold text-emerald-700">
                                 </div>
                             </div>
                         </div>
@@ -226,7 +226,7 @@
                                 </div>
                                 <div class="text-center flex-1">
                                     <p class="text-[10px] text-indigo-300 uppercase font-bold">Costo Base</p>
-                                    <p class="text-lg font-bold">${{ Number(detailedProductData.product.latest_entry?.cost_per_unit || 0).toFixed(2) }}</p>
+                                    <p class="text-lg font-bold">${{ Number(detailedProductData.product.latest_entry?.unit_cost || 0).toFixed(2) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -257,7 +257,7 @@
 
                         <div class="pt-4 border-t border-gray-100 flex justify-between items-center font-bold">
                             <span class="text-gray-900 text-xs">Total Investment</span>
-                            <span class="text-indigo-600">${{ (form.quantity * form.cost_per_unit).toFixed(2) }}</span>
+                            <span class="text-indigo-600">${{ (form.quantity * form.unit_cost).toFixed(2) }}</span>
                         </div>
                     </div>
 
@@ -315,21 +315,21 @@ const form = reactive({
     warehouse_id: '',
     supplier_id: '',
     quantity: 0,
-    cost_per_unit: 0,
-    selling_price: 0,
+    unit_cost: 0,
+    unit_price: 0,
     entry_date: new Date().toISOString().split('T')[0],
     batch_number: '',
     notes: ''
 });
 
 const profit = computed(() => {
-    if (!form.cost_per_unit || !form.selling_price) return 0;
-    return form.selling_price - form.cost_per_unit;
+    if (!form.unit_cost || !form.unit_price) return 0;
+    return form.unit_price - form.unit_cost;
 });
 
 const margin = computed(() => {
-    if (!form.selling_price || !form.cost_per_unit) return 0;
-    return (profit.value / form.selling_price) * 100;
+    if (!form.unit_price || !form.unit_cost) return 0;
+    return (profit.value / form.unit_price) * 100;
 });
 
 const marginClass = computed(() => {
@@ -340,7 +340,7 @@ const marginClass = computed(() => {
 });
 
 const isValid = computed(() => {
-    return form.product_id && form.warehouse_id && form.quantity > 0 && form.cost_per_unit > 0;
+    return form.product_id && form.warehouse_id && form.quantity > 0 && form.unit_cost > 0;
 });
 
 const filteredWarehouses = computed(() => {
@@ -395,8 +395,8 @@ const fetchProductDetails = async (productId) => {
         
         // Update form with latest suggestions
         if (detailedProductData.value.product.latest_entry) {
-            form.cost_per_unit = detailedProductData.value.product.latest_entry.cost_per_unit;
-            form.selling_price = detailedProductData.value.product.latest_entry.selling_price;
+            form.unit_cost = detailedProductData.value.product.latest_entry.unit_cost;
+            form.unit_price = detailedProductData.value.product.latest_entry.unit_price;
         }
     } catch (error) {
         console.error('Error fetching product details:', error);
@@ -416,8 +416,8 @@ const fetchEntryDetails = async (id) => {
         form.warehouse_id = entry.warehouse_id;
         form.supplier_id = entry.supplier_id;
         form.quantity = entry.quantity;
-        form.cost_per_unit = entry.cost_per_unit;
-        form.selling_price = entry.selling_price;
+        form.unit_cost = entry.unit_cost;
+        form.unit_price = entry.unit_price;
         form.entry_date = entry.entry_date;
         form.batch_number = entry.batch_number || '';
         form.notes = entry.notes || '';

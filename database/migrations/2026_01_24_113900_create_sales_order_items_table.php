@@ -20,9 +20,11 @@ return new class extends Migration
             $table->decimal('unit_price', 10, 2); // Selling price at time of sale
             $table->decimal('unit_cost', 10, 2)->nullable(); // Cost for profit calculation
             $table->decimal('discount', 10, 2)->default(0);
-            $table->decimal('tax', 10, 2)->default(0);
+            $table->decimal('tax_rate', 10, 2)->default(0);
+            $table->decimal('tax_amount', 10, 2)->default(0);
             $table->decimal('subtotal', 12, 2); // quantity * unit_price
-            $table->decimal('total', 12, 2); // subtotal - discount + tax
+            $table->decimal('subtotal_after_discount', 12, 2); // subtotal - discount
+            $table->decimal('total', 12, 2); // subtotal_after_discount + tax_amount
             $table->text('notes')->nullable();
             $table->timestamps();
         });

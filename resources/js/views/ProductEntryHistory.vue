@@ -81,11 +81,11 @@
                             <span class="text-[10px] text-gray-400 uppercase ml-1">{{ entry.product?.unit }}</span>
                         </td>
                         <td class="px-4 py-4 text-right font-medium text-gray-700">
-                            ${{ Number(entry.cost_per_unit).toFixed(2) }}
+                            ${{ Number(entry.unit_cost).toFixed(2) }}
                         </td>
                         <td class="px-4 py-4 text-right">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                ${{ Number(entry.selling_price).toFixed(2) }}
+                                ${{ Number(entry.unit_price).toFixed(2) }}
                             </span>
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">

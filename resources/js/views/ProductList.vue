@@ -121,14 +121,14 @@
 
             <template #cost="{ item }">
                 <span v-if="item.latest_entry" class="text-gray-600">
-                    ${{ Number(item.latest_entry.cost_per_unit).toFixed(2) }}
+                    ${{ Number(item.latest_entry.unit_cost).toFixed(2) }}
                 </span>
                 <span v-else class="text-gray-400 text-xs italic">N/A</span>
             </template>
 
             <template #price="{ item }">
                 <span v-if="item.latest_entry" class="font-medium text-gray-900">
-                    ${{ Number(item.latest_entry.selling_price).toFixed(2) }}
+                    ${{ Number(item.latest_entry.unit_price).toFixed(2) }}
                 </span>
                 <span v-else class="text-gray-400 text-xs italic">N/A</span>
             </template>

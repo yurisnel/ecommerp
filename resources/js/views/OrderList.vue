@@ -21,7 +21,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</p>
-                        <p class="text-lg font-bold text-gray-900">{{ stats.total_orders }}</p>
+                        <p class="text-lg font-bold text-gray-900">{{ stats.count_orders }}</p>
                     </div>
                     <div class="p-2 bg-amber-50 rounded-lg">
                         <Icon icon="mdi:receipt" class="h-5 w-5 text-amber-600" />
@@ -32,7 +32,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Sales</p>
-                        <p class="text-lg font-bold text-emerald-600">${{ stats.total_sales.toFixed(2) }}</p>
+                        <p class="text-lg font-bold text-emerald-600">${{ stats.total_sales_amount.toFixed(2) }}</p>
                     </div>
                     <div class="p-2 bg-emerald-50 rounded-lg">
                         <Icon icon="mdi:currency-usd" class="h-5 w-5 text-emerald-600" />
@@ -43,7 +43,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Net Profit</p>
-                        <p class="text-lg font-bold text-blue-600">${{ stats.net_profit.toFixed(2) }}</p>
+                        <p class="text-lg font-bold text-blue-600">${{ stats.total_profit_amount.toFixed(2) }}</p>
                     </div>
                     <div class="p-2 bg-blue-50 rounded-lg">
                         <Icon icon="mdi:chart-line" class="h-5 w-5 text-blue-600" />
@@ -178,11 +178,14 @@
                     <div class="font-medium text-gray-700">
                         {{ getPaymentMethods(item.payments) }}
                     </div>
-                    <div class="text-emerald-600 font-semibold mt-0.5">
-                        ${{ getTotalPaid(item.payments).toFixed(2) }}
+                    <div 
+                        class="font-semibold mt-0.5"
+                        :class="isPaymentComplete(item) ? 'text-emerald-600' : 'text-red-600'"
+                    >
+                        ${{ getTotalPaid(item.payments).toFixed(2) }}                       
                     </div>
                 </div>
-                <span v-else class="text-gray-400 text-sm italic">Not paid</span>
+                <span v-else class="text-red-500 text-sm italic font-medium">Not paid</span>
             </template>
 
             <template #status="{ item }">
@@ -241,9 +244,9 @@ const filters = reactive({
 });
 
 const stats = ref({
-    total_orders: 0,
-    total_sales: 0,
-    net_profit: 0
+    count_orders: 0,
+    total_sales_amount: 0,
+    total_profit_amount: 0
 });
 
 const pagination = ref({
@@ -368,6 +371,11 @@ const getPaymentMethods = (payments) => {
 const getTotalPaid = (payments) => {
     if (!payments || payments.length === 0) return 0;
     return payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+};
+
+const isPaymentComplete = (item) => {
+    const totalPaid = getTotalPaid(item.payments);
+    return totalPaid >= Number(item.total);
 };
 
 onMounted(() => {

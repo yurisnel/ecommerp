@@ -20,11 +20,14 @@ class SalesOrder extends Model
         'customer_id',
         'sales_channel_id',
         'warehouse_id',
-        'order_status_id',
-        'subtotal',
-        'tax',
-        'discount',
+        'order_status_id',       
+        'tax_rate',
+        'tax_amount',
+        'discount_global',
+        'discount_total',
         'shipping',
+        'subtotal',
+        'subtotal_after_discount',
         'total',
         'shipping_address',
         'billing_address',
@@ -35,11 +38,14 @@ class SalesOrder extends Model
         'created_by',
     ];
 
-    protected $casts = [
-        'subtotal' => 'decimal:2',
-        'tax' => 'decimal:2',
-        'discount' => 'decimal:2',
+    protected $casts = [        
+        'tax_rate' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'discount_global' => 'decimal:2',
+        'discount_total' => 'decimal:2',
         'shipping' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'subtotal_after_discount' => 'decimal:2',
         'total' => 'decimal:2',
         'order_date' => 'datetime',
         'shipped_date' => 'datetime',
@@ -168,6 +174,6 @@ class SalesOrder extends Model
      */
     public function statusHistories(): HasMany
     {
-        return $this->hasMany(OrderStatusHistory::class, 'sales_order_id')->orderBy('created_at', 'desc');
+        return $this->hasMany(OrderStatusHistory::class, 'sales_order_id')->orderBy('changed_at', 'desc');
     }
 }

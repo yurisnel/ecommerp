@@ -27,9 +27,7 @@ class InventoryService
         DB::beginTransaction();
 
         try {
-            // Calculate total cost
-            $data['total_cost'] = $data['quantity'] * $data['cost_per_unit'];
-
+           
             // Create product entry
             $entry = ProductEntry::create($data);
 
@@ -40,7 +38,7 @@ class InventoryService
                 'product_entry_id' => $entry->id,
                 'type' => 'in',
                 'quantity' => $data['quantity'],
-                'unit_price' => $data['cost_per_unit'],
+                'unit_price' => $data['unit_cost'],
                 'reference_type' => 'product_entry',
                 'reference_id' => $entry->id,
                 'notes' => '',
@@ -93,14 +91,6 @@ class InventoryService
             $oldQuantity = $entry->quantity;
             $oldWarehouseId = $entry->warehouse_id;
             $oldProductId = $entry->product_id;
-
-            // Update entry details
-            if (isset($data['quantity']) || isset($data['cost_per_unit'])) {
-                $qty = $data['quantity'] ?? $entry->quantity;
-                $cost = $data['cost_per_unit'] ?? $entry->cost_per_unit;
-                $data['total_cost'] = $qty * $cost;
-            }
-
             $entry->update($data);
 
             // If quantity, product or warehouse changed, we need to adjust inventory
@@ -122,7 +112,7 @@ class InventoryService
                     'product_id' => $entry->product_id,
                     'warehouse_id' => $entry->warehouse_id,
                     'quantity' => $entry->quantity,
-                    'unit_price' => $entry->cost_per_unit,
+                    'unit_price' => $entry->unit_cost,
                     'notes' => $entry->notes ?? 'Updated Product entry #' . $entry->id,
                     'movement_date' => $entry->entry_date,
                 ]);
@@ -483,8 +473,8 @@ class InventoryService
         }
 
         $totalQuantity = $query->sum(DB::raw('COALESCE(quantity, 0)'));
-        $totalInvested = $query->sum(DB::raw('COALESCE(quantity, 0) * COALESCE(cost_per_unit, 0)'));
-        $totalSellingPrice = $query->sum(DB::raw('COALESCE(quantity, 0) * COALESCE(selling_price, 0)'));
+        $totalInvested = $query->sum(DB::raw('COALESCE(quantity, 0) * COALESCE(unit_cost, 0)'));
+        $totalSellingPrice = $query->sum(DB::raw('COALESCE(quantity, 0) * COALESCE(unit_price, 0)'));
         $totalProfit = $totalSellingPrice - $totalInvested;
 
         return [

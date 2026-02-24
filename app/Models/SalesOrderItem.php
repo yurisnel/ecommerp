@@ -18,9 +18,11 @@ class SalesOrderItem extends Model
         'unit_price',
         'unit_cost',
         'discount',
-        'tax',
+        'tax_rate',
+        'tax_amount',
         'subtotal',
-        'total',
+        'subtotal_after_discount',
+        'total', // despues de descuentos e impuestos
         'notes',
     ];
 
@@ -29,8 +31,10 @@ class SalesOrderItem extends Model
         'unit_price' => 'decimal:2',
         'unit_cost' => 'decimal:2',
         'discount' => 'decimal:2',
-        'tax' => 'decimal:2',
+        'tax_rate' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'subtotal_after_discount' => 'decimal:2',
         'total' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

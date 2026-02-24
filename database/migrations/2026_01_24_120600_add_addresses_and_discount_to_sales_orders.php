@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('billing_address_id')->nullable()->after('shipping_address_id')->constrained('customer_addresses')->onDelete('set null');
             
             // Add discount tracking
-            $table->foreignId('discount_rule_id')->nullable()->after('discount')->constrained()->onDelete('set null');
+            $table->foreignId('discount_rule_id')->nullable()->after('discount_total')->constrained()->onDelete('set null');
         });
     }
 

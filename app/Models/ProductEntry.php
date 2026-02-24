@@ -17,9 +17,8 @@ class ProductEntry extends Model
         'supplier_id',
         'warehouse_id',
         'quantity',
-        'cost_per_unit',
-        'selling_price',
-        'total_cost',
+        'unit_cost',
+        'unit_price',        
         'entry_date',
         'expiration_date',
         'batch_number',
@@ -29,9 +28,8 @@ class ProductEntry extends Model
 
     protected $casts = [
         'quantity' => 'decimal:2',
-        'cost_per_unit' => 'decimal:2',
-        'selling_price' => 'decimal:2',
-        'total_cost' => 'decimal:2',
+        'unit_cost' => 'decimal:2',
+        'unit_price' => 'decimal:2',
         'entry_date' => 'date',
         'expiration_date' => 'date',
         'created_at' => 'datetime',
@@ -92,10 +90,10 @@ class ProductEntry extends Model
      */
     public function getProfitMarginAttribute(): float
     {
-        if ($this->cost_per_unit == 0) {
+        if ($this->unit_cost == 0) {
             return 0;
         }
         
-        return (($this->selling_price - $this->cost_per_unit) / $this->cost_per_unit) * 100;
+        return (($this->unit_price - $this->unit_cost) / $this->unit_cost) * 100;
     }
 }

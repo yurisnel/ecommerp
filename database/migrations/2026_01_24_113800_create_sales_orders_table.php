@@ -16,11 +16,14 @@ return new class extends Migration
             $table->string('order_number', 50)->unique();
             $table->foreignId('customer_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('sales_channel_id')->constrained()->onDelete('cascade');
-            $table->foreignId('warehouse_id')->constrained()->onDelete('cascade');
-            $table->decimal('subtotal', 12, 2);
-            $table->decimal('tax', 10, 2)->default(0);
-            $table->decimal('discount', 10, 2)->default(0);
+            $table->foreignId('warehouse_id')->constrained()->onDelete('cascade');           
+            $table->decimal('tax_rate', 10, 2)->default(0);
+            $table->decimal('tax_amount', 10, 2)->default(0);
+            $table->decimal('discount_global', 10, 2)->default(0);
+            $table->decimal('discount_total', 10, 2)->default(0);
             $table->decimal('shipping', 10, 2)->default(0);
+            $table->decimal('subtotal', 12, 2);
+            $table->decimal('subtotal_after_discount', 12, 2);
             $table->decimal('total', 12, 2);
             $table->text('shipping_address')->nullable();
             $table->text('billing_address')->nullable();

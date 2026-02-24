@@ -3,86 +3,177 @@
 namespace Database\Factories;
 
 use App\Models\Customer;
-use App\Models\OrderStatus;
-use App\Models\OrderStatusHistory;
+use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\ProductEntry;
 use App\Models\SalesChannel;
-use App\Models\SalesOrderItem;
+use App\Models\SalesOrder;
 use App\Models\Warehouse;
+use App\Services\SalesService;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 
 class SalesOrderFactory extends Factory
 {
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
+    protected $model = SalesOrder::class;
+
+    /**
+     * Define the model's default state.
+     */
     public function definition(): array
     {
-        $tax = 0;
         return [
-            'order_number' => 'ORD-' . $this->faker->unique()->numberBetween(100000, 999999),
-            'customer_id' => Customer::factory(),
-            'sales_channel_id' => SalesChannel::inRandomOrder()->first()?->id ?? 1,
-            'warehouse_id' => Warehouse::factory(),
-            'order_status_id' => OrderStatus::where('slug', 'pending')->first()?->id ?? 1,
-            'order_date' => $this->faker->dateTimeBetween('-1 year', 'now'),            
-            'subtotal' => $subtotal = $this->faker->randomFloat(2, 50, 200),
-            'tax' => $taxValue = $subtotal * $tax,
-            'discount' => $discount = $this->faker->randomFloat(2, 0, 5),
-            'shipping' => $shipping = $this->faker->randomFloat(2, 10, 3),
-            'total' => $subtotal + $taxValue + $shipping - $discount,
-            'shipping_address' => $this->faker->address,
-            'billing_address' => $this->faker->address,
+            // Empty - we use a different approach
         ];
     }
 
     /**
-     * Configure the model factory
+     * Create model(s) using SalesService
+     *
+     * @param array $attributes
+     * @param \Illuminate\Database\Eloquent\Model|null $parent
+     * @return SalesOrder|\Illuminate\Database\Eloquent\Collection|int
      */
-    public function configure()
+    public function create($attributes = [], $parent = null)
     {
-        return $this->afterCreating(function ($salesOrder) {
-            // Create initial status history record with 'pending' status
-            $pendingStatus = OrderStatus::where('slug', 'pending')->first();
-            
-            if ($pendingStatus) {
-                OrderStatusHistory::create([
-                    'sales_order_id' => $salesOrder->id,
-                    'order_status_id' => $pendingStatus->id,
-                    'changed_at' => $salesOrder->created_at,
-                ]);
+        // If count is set, create multiple
+        if ($this->count !== null && $this->count > 1) {
+            return $this->createMultiple($this->count, $attributes);
+        }
+
+        return $this->createSingleOrder($attributes);
+    }
+
+    /**
+     * Create multiple orders
+     *
+     * @param int $count
+     * @param array $attributes
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    protected function createMultiple(int $count, array $attributes = []): \Illuminate\Support\Collection
+    {
+        $results = collect();
+
+        for ($i = 0; $i < $count; $i++) {
+            $order = $this->createSingleOrder($attributes);
+            if ($order) {
+                $results->push($order);
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Internal method to create a single order using SalesService
+     *
+     * @param array $attributes
+     * @return SalesOrder|null
+     */
+    protected function createSingleOrder(array $attributes = []): ?SalesOrder
+    {
+        $salesService = App::make(SalesService::class);
+
+        // Get or create customer
+        $customer = $attributes['customer'] ?? Customer::factory()->create();
+
+        // Get or create warehouse
+        //$warehouse = $attributes['warehouse'] ?? Warehouse::inRandomOrder()->first() ?? Warehouse::factory()->create();
+
+        // Prepare items data
+        $itemCount = fake()->numberBetween(1, 3);
+        $productsEntry = ProductEntry::inRandomOrder()->limit($itemCount)->get();
+        $items = [];
+        $tax = 0;
+
+        foreach ($productsEntry as $productEntry) {
+            $quantity = fake()->numberBetween(1, 5);
+            $unitPrice = $productEntry->unit_price;         
+            $discount = random_int(0, $unitPrice * 0.2); // Random discount between 0% and 20%
+
+            $items[] = [
+                'product_entry_id' => $productEntry->id,
+                'quantity' => $quantity,
+                'discount' => $discount
+            ];
+        }
+
+        // Prepare data for SalesService
+        $orderData = [
+            'customer_id' => $customer->id ?? null,
+            'sales_channel_id' => $attributes['sales_channel_id'] ?? SalesChannel::inRandomOrder()->first()?->id ?? 1,
+            'warehouse_id' => $warehouse?->id ?? 1,
+            'order_date' => $attributes['order_date'] ?? fake()->dateTimeBetween('-1 year', 'now'),
+            'shipping_address' => $attributes['shipping_address'] ?? fake()->address,
+            'billing_address' => $attributes['billing_address'] ?? fake()->address,
+            'tax' => $attributes['tax'] ?? $tax,
+            'discount_global' => $attributes['discount_global'] ?? fake()->randomFloat(2, 0, 2),
+            'shipping' => $attributes['shipping'] ?? fake()->randomFloat(2, 1, 5),
+            'items' => $items,
+        ];
+
+        $order = null;
+        try {
+            $order = $salesService->createSalesOrder($orderData);
+            $this->createPayments($order);
+        } catch (\Exception $e) {
+            Log::error('Error in SalesOrder Factory: ' . $e->getMessage());
+        }
+
+        return $order;
+    }
+
+    /**
+     * Create payments for the order (optional random)
+     *
+     * @param SalesOrder $salesOrder
+     * @return void
+     */
+    public function createPayments(SalesOrder $salesOrder): void
+    {
+        $shouldCreatePayment = fake()->boolean(70);
+
+        if (!$shouldCreatePayment) {
+            return;
+        }
+
+        try {
+            $salesService = App::make(SalesService::class);
+            $paymentMethod = PaymentMethod::inRandomOrder()->first();
+
+            if (!$paymentMethod) {
+                Log::warning('No payment methods available for order #' . $salesOrder->order_number);
+                return;
             }
 
-            // Create sales order items (1-5 items per order)
-            $itemCount = fake()->numberBetween(1, 3);
-            $products = Product::inRandomOrder()->limit($itemCount)->get();
-            $tax = 0;
-            $subtotalProducts = 0;
-            foreach ($products as $product) {
-                $quantity = fake()->numberBetween(1, 5);
-                $unitPrice = fake()->randomFloat(2, 10, 20);
-                $unitCost = $unitPrice * fake()->randomFloat(1, 0.5, 0.8);
-                $discount = fake()->randomFloat(2, 0, $unitPrice * 0.2);
-                $subtotal = ($unitPrice * $quantity) - $discount;
-                $taxValue = $subtotal * $tax;
-                $total = round($subtotal + $taxValue, 2);
-                $subtotalProducts += $total;
+            // Decide randomly if partially or fully paid
+            $isFullyPaid = fake()->boolean(60);
 
-                SalesOrderItem::create([
-                    'sales_order_id' => $salesOrder->id,
-                    'product_id' => $product->id,
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice,
-                    'unit_cost' => $unitCost,
-                    'discount' => $discount,
-                    'tax' => $taxValue,
-                    'subtotal' => $subtotal,
-                    'total' => $total,
-                    'notes' => fake()->optional(0.3)->sentence(),
-                ]);
+            if ($isFullyPaid) {
+                // Full payment
+                $amount = $salesOrder->total;
+            } else {
+                // Partial payment (50-90% of total)
+                $percentage = fake()->randomFloat(2, 0.5, 0.9);
+                $amount = round($salesOrder->total * $percentage, 2);
             }
-    
-             $salesOrder->subtotal = $subtotalProducts;
-             $salesOrder->tax = $salesOrder->subtotal * $tax;
-             $salesOrder->total = $salesOrder->subtotal + $salesOrder->tax + $salesOrder->shipping - $salesOrder->discount;
-             $salesOrder->save();
-        });
+
+            $salesService->processPayment([
+                'sales_order_id' => $salesOrder->id,
+                'payment_method_id' => $paymentMethod->id,
+                'amount' => $amount,
+                'status' => 'completed',
+                'payment_date' => now(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error creating payment for order #' . $salesOrder->order_number . ': ' . $e->getMessage());
+        }
     }
 }

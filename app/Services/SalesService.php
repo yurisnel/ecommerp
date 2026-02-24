@@ -9,6 +9,7 @@ use App\Models\SalesOrderItem;
 use App\Models\Payment;
 use App\Models\OrderStatus;
 use App\Models\OrderStatusHistory;
+use App\Models\ProductEntry;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -45,20 +46,26 @@ class SalesService
             // Set order date if not provided
             if (!isset($data['order_date'])) {
                 $data['order_date'] = now();
-            }           
+            }
 
             // Create sales order
             $orderStatusId = OrderStatus::where('slug', EOrderStatus::PENDING)->first()->id ?? null;
+            $discountGlobal = $data['discount_global'] ?? 0;
+            $taxRate = $data['tax_rate'] ?? 0;
+            
             $order = SalesOrder::create([
                 'order_number' => $data['order_number'],
                 'customer_id' => $data['customer_id'] ?? null,
                 'sales_channel_id' => $data['sales_channel_id'],
                 'warehouse_id' => $data['warehouse_id'],
                 'order_status_id' => $orderStatusId,
-                'subtotal' => 0,
-                'tax' => $data['tax'] ?? 0,
-                'discount' => $data['discount'] ?? 0,
+                'tax_rate' => $taxRate,
+                'tax_amount' => 0,
+                'discount_global' => $discountGlobal,
+                'discount_total' => 0,
                 'shipping' => $data['shipping'] ?? 0,
+                'subtotal' => 0,
+                'subtotal_after_discount' => 0,
                 'total' => 0,
                 'shipping_address' => $data['shipping_address'] ?? null,
                 'billing_address' => $data['billing_address'] ?? null,
@@ -68,24 +75,39 @@ class SalesService
             ]);
 
             // Add order items
-            $subtotal = 0;
+            $lineSubtotal = 0;
+            $lineDiscountTotal = 0;
+            $lineTaxAmountTotal = 0;
+            $subtotalAfterLineDiscount = 0;
             foreach ($data['items'] as $itemData) {
+                $itemData['tax_rate'] = $taxRate; // Impuesto en Por Ciento
                 $item = $this->addOrderItem($order, $itemData);
-                $subtotal += $item->subtotal;
+                $lineSubtotal += $item->subtotal;
+                $subtotalAfterLineDiscount += $item->subtotal_after_discount;
+                $lineDiscountTotal += $item->discount;
+                $lineTaxAmountTotal += $item->tax_amount;
             }
+            //$globalDiscount = $subtotalAfterLineDiscount * ($data['discount'] / 100);
+          
+            $orderDiscountTotal = $lineDiscountTotal + $discountGlobal;
 
             // Update order totals
-            $order->subtotal = $subtotal;
-            $order->total = $subtotal + $order->tax + $order->shipping - $order->discount;
+            $order->subtotal = $lineSubtotal;
+            $order->discount_global = $discountGlobal;
+            $order->discount_total = $orderDiscountTotal;
+            $order->tax_rate = $taxRate;
+            $order->tax_amount = $lineTaxAmountTotal;
+            $order->subtotal_after_discount = $subtotalAfterLineDiscount;
+            $order->total = $lineSubtotal - $orderDiscountTotal + $lineTaxAmountTotal + $order->shipping;
+
             $order->save();
-            
+
             // Create initial status history
             $history = new OrderStatusHistory();
             $history->sales_order_id = $order->id;
             $history->order_status_id = $orderStatusId;
             $history->changed_by = auth()->id();
             $history->changed_at = now();
-
             $history->save();
 
             DB::commit();
@@ -97,6 +119,8 @@ class SalesService
         }
     }
 
+
+
     /**
      * Add item to sales order
      * 
@@ -107,32 +131,43 @@ class SalesService
      */
     public function addOrderItem(SalesOrder $order, array $data): SalesOrderItem
     {
+        $productEntryId = $data['product_entry_id'];        
+        $productEntry = ProductEntry::findOrFail($productEntryId);
+
         // Reserve inventory
         $this->inventoryService->reserveInventory(
-            $data['product_id'],
+            $productEntry->product_id,
             $order->warehouse_id,
             $data['quantity']
         );
 
         // Calculate item totals
-        $subtotal = $data['quantity'] * $data['unit_price'];
-        $total = $subtotal - ($data['discount'] ?? 0) + ($data['tax'] ?? 0);
+        $unitPrice = $productEntry->unit_price;
+        $subtotal = round($data['quantity'] * $unitPrice, 2);
+        //$discount = $subtotal * ($data['discount'] / 100);
+        $discount  = $data['discount'] ?? 0;
+        $subtotalAfterDiscount = round($subtotal - $discount, 2);
+        $taxRate  = $data['tax_rate'] ?? 1;
+        $taxAmount = round($subtotalAfterDiscount * $taxRate, 2);
+
 
         return SalesOrderItem::create([
             'sales_order_id' => $order->id,
-            'product_id' => $data['product_id'],
-            'product_entry_id' => $data['product_entry_id'] ?? null,
+            'product_id' => $productEntry->product_id,
+            'product_entry_id' => $productEntry->id,
+            'unit_price' => $unitPrice,
+            'unit_cost' => $productEntry->unit_cost,
             'quantity' => $data['quantity'],
-            'unit_price' => $data['unit_price'],
-            'unit_cost' => $data['unit_cost'] ?? null,
-            'discount' => $data['discount'] ?? 0,
-            'tax' => $data['tax'] ?? 0,
+            'discount' => $discount,
+            'tax_rate' => $taxRate,
+            'tax_amount' => $taxAmount,
             'subtotal' => $subtotal,
-            'total' => $total,
+            'subtotal_after_discount' => $subtotalAfterDiscount,
+            'total' => $subtotalAfterDiscount + $taxAmount,
             'notes' => $data['notes'] ?? null,
         ]);
     }
-   
+
 
     /**
      * Transition order to a new status with validation
@@ -146,14 +181,23 @@ class SalesService
             $order = SalesOrder::with('orderStatus')->findOrFail($orderId);
 
             $fromStatus = $order->orderStatus->slug ?? null;
-           
+
             if (!EOrderStatus::isValidTransition($fromStatus, $toStatus)) {
                 throw new Exception("Cannot transition from {$fromStatus} to {$toStatus}");
             }
 
+            switch ($toStatus) {
+                case EOrderStatus::CONFIRMED:
+                    $this->confirmOrder($order);
+                    break;
+                case EOrderStatus::CANCELLED:
+                    $this->cancelOrder($order);
+                    break;
+            }
+
+
             $newStatus = OrderStatus::where('slug', $toStatus)->firstOrFail();
             $order->order_status_id = $newStatus->id;
-
             $order->save();
 
             $history = new OrderStatusHistory();
@@ -166,7 +210,7 @@ class SalesService
             $history->save();
             DB::commit();
             event(new OrderStatusChanged($order, $fromStatus, $toStatus));
-            
+
             return $order->fresh(['orderStatus', 'statusHistories.status', 'statusHistories.changer']);
         } catch (Exception $e) {
             DB::rollBack();
@@ -174,7 +218,98 @@ class SalesService
         }
     }
 
-   
+
+    /**
+     * Coonfirm Reserve
+     * 
+     * @param SalesOrder $order
+     * @return bool
+     * 
+     */
+    protected function confirmOrder($order): bool
+    {
+        // Process each item
+        foreach ($order->items as $item) {
+            // Release reservation
+            $this->inventoryService->releaseReservedInventory(
+                $item->product_id,
+                $order->warehouse_id,
+                $item->quantity
+            );
+
+            // Deduct from inventory
+            $this->inventoryService->updateInventory(
+                $item->product_id,
+                $order->warehouse_id,
+                $item->quantity,
+                'subtract'
+            );
+
+            // Create stock movement
+            $this->inventoryService->createStockMovement([
+                'product_id' => $item->product_id,
+                'warehouse_id' => $order->warehouse_id,
+                'product_entry_id' => $item->product_entry_id,
+                'type' => 'out',
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+                'reference_type' => 'sales_order',
+                'reference_id' => $order->id,
+                'notes' => 'Sale order: ' . $order->order_number,
+                'created_by' => auth()->id(),
+                'movement_date' => now(),
+            ]);
+        }
+        return true;
+    }
+
+    /**
+     * Cancel sales order and release inventory
+     * 
+     * @param SalesOrder $orderId
+     * @return bool     *
+     */
+    public function cancelOrder($order): bool
+    {
+        $currentStatus = $order->currentStatus?->slug;
+
+        foreach ($order->items as $item) {
+            // Release reserved inventory for pending orders
+
+            foreach ($order->items as $item) {
+                if ($currentStatus === EOrderStatus::PENDING) {
+                    $this->inventoryService->releaseReservedInventory(
+                        $item->product_id,
+                        $order->warehouse_id,
+                        $item->quantity
+                    );
+                } else  if (in_array($currentStatus, [EOrderStatus::CONFIRMED, EOrderStatus::PROCESSING, EOrderStatus::SHIPPED])) {
+
+                    // Return inventory for confirmed/processing orders
+                    $this->inventoryService->updateInventory(
+                        $item->product_id,
+                        $order->warehouse_id,
+                        $item->quantity,
+                        'add'
+                    );
+
+                    // Create stock movement for return
+                    $this->inventoryService->createStockMovement([
+                        'product_id' => $item->product_id,
+                        'warehouse_id' => $order->warehouse_id,
+                        'type' => 'in',
+                        'quantity' => $item->quantity,
+                        'reference_type' => 'sales_order_cancellation',
+                        'reference_id' => $order->id,
+                        'notes' => 'Order cancellation: ' . $order->order_number,
+                        'created_by' => auth()->id(),
+                        'movement_date' => now(),
+                    ]);
+                }
+            }
+        }
+        return true;
+    }
 
     /**
      * Process payment for sales order
@@ -201,6 +336,21 @@ class SalesService
                 'processed_by' => $data['processed_by'] ?? auth()->id(),
             ]);
 
+            // Check if order is fully paid and update status to confirmed
+            // Calculate total paid amount for this order
+            $totalPaid = $order->payments()
+                ->where('status', 'completed')
+                ->sum('amount');
+
+            // Check if fully paid (with small tolerance for floating point)
+            if ($totalPaid >= $order->total - 0.01) {
+                // Update status to confirmed
+                $this->updateStatus($order->id, [
+                    'order_status' => EOrderStatus::CONFIRMED,
+                    'notes' => 'Order fully paid - automatically confirmed'
+                ]);
+            }
+
             DB::commit();
 
             return $payment->fresh(['salesOrder']);
@@ -215,19 +365,15 @@ class SalesService
      * 
      * @return string
      */
+
     private function generateOrderNumber(): string
     {
         $prefix = 'ORD';
-        $date = date('Ymd');
-        $lastOrder = SalesOrder::whereDate('created_at', today())
-            ->orderBy('id', 'desc')
-            ->first();
+        $today = now()->format('Ymd');
 
-        $sequence = $lastOrder ? (int)substr($lastOrder->order_number, -4) + 1 : 1;
-
-        return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        $counter = SalesOrder::whereDate('created_at', now())->count() + 1;
+        return sprintf('%s-%s-%04d', $prefix, $today, $counter);
     }
-
 
 
     /**
@@ -269,20 +415,17 @@ class SalesService
         }
 
         // All time totals (with filters)
-        $totalOrders = $query->clone()->count();
+        $countOrders = $query->clone()->count();
         $totalSales = $query->clone()->sum('total');
-
-        // Calculate net profit (total - discount - tax + shipping - cost of items)
-        // We'll use a simple calculation: total - discount - tax - shipping
-        $totalDiscount = $query->clone()->sum('discount');
-        $totalTax = $query->clone()->sum('tax');
-        $totalShipping = $query->clone()->sum('shipping');
-        $netProfit = $totalSales - $totalDiscount - $totalTax - $totalShipping;
+        $costProduct = $query->clone()->with('items')->get()->flatMap->items->sum(function ($item) {
+            return $item->unit_cost * $item->quantity;
+        });
+        $netProfit = $totalSales - $costProduct;
 
         return [
-            'total_orders' => $totalOrders,
-            'total_sales' => (float) $totalSales,
-            'net_profit' => (float) $netProfit
+            'count_orders' => $countOrders,
+            'total_sales_amount' => (float) $totalSales,
+            'total_profit_amount' => (float) $netProfit
         ];
     }
 }

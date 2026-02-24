@@ -61,13 +61,19 @@ class ProductFactory extends Factory
             // Create product entries using InventoryService to properly manage inventory
             if ($warehouses->isNotEmpty() && $suppliers->isNotEmpty()) {
                 try {
+                    $qty = rand(10, 20);
+                    $cost = rand(5, 10);
+                    $inc = $this->faker->randomFloat(1, 1.5, 2);
+                    $price = $cost * $inc;
+
                     $inventoryService->createProductEntry([
                         'product_id' => $product->id,
-                        'warehouse_id' => $warehouses->random()->id,
+                        //'warehouse_id' => $warehouses->random()->id,
+                        'warehouse_id' => 1,
                         'supplier_id' => $suppliers->random()->id,
-                        'quantity' => $qty = rand(20, 150),
-                        'cost_per_unit' => $cost = rand(10, 100),
-                        'selling_price' => $price = $cost * rand(1.2, 1.5),
+                        'quantity' =>  $qty,
+                        'unit_cost' => $cost,
+                        'unit_price' => $price,
                         'entry_date' => now(),
                         'batch_number' => 'BATCH-' . strtoupper(\Illuminate\Support\Str::random(8)),
                         'notes' => 'Initial inventory',

@@ -17,9 +17,8 @@ return new class extends Migration
             $table->foreignId('supplier_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('warehouse_id')->constrained()->onDelete('cascade');
             $table->decimal('quantity', 10, 2);
-            $table->decimal('cost_per_unit', 10, 2); // Cost from supplier
-            $table->decimal('selling_price', 10, 2); // Selling price for this batch
-            $table->decimal('total_cost', 12, 2); // quantity * cost_per_unit
+            $table->decimal('unit_cost', 10, 2); // Cost from supplier
+            $table->decimal('unit_price', 10, 2); // Selling price for this batch           
             $table->date('entry_date');
             $table->date('expiration_date')->nullable();
             $table->string('batch_number', 100)->nullable();

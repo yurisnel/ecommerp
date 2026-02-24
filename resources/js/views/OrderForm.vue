@@ -163,7 +163,7 @@
                                             </div>
                                         </div>
                                         <div class="text-right">
-                                            <div class="font-black text-emerald-600">${{ Number(entry.selling_price).toFixed(2) }}</div>
+                                            <div class="font-black text-emerald-600">${{ Number(entry.unit_price).toFixed(2) }}</div>
                                             <div class="text-[10px] font-bold text-gray-400">Stock: {{ entry.quantity }}</div>
                                         </div>
                                     </div>
@@ -281,25 +281,25 @@
                             <div v-if="!isEditing" class="flex items-center">
                                 <span class="text-[10px] text-gray-400 mr-1">$</span>
                                 <input 
-                                    v-model.number="form.discount" 
+                                    v-model.number="form.discount_global" 
                                     type="number" min="0" step="1"
                                     class="w-24 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-right text-sm font-bold focus:bg-white transition-all outline-none"
                                 >
                             </div>
-                            <span v-else class="font-bold text-rose-600">-${{ form.discount.toFixed(2) }}</span>
+                            <span v-else class="font-bold text-rose-600">-${{ form.discount_global?.toFixed(2) }}</span>
                         </div>
 
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Manual Tax</span>
+                            <span class="text-gray-500">Taxes</span>
                             <div v-if="!isEditing" class="flex items-center">
-                                <span class="text-[10px] text-gray-400 mr-1">$</span>
+                                <span class="text-[10px] text-gray-400 mr-1">%</span>
                                 <input 
-                                    v-model.number="form.tax" 
+                                    v-model.number="form.tax_rate" 
                                     type="number" min="0" step="0.01"
                                     class="w-24 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-right text-sm font-bold focus:bg-white transition-all outline-none"
                                 >
                             </div>
-                            <span v-else class="font-bold text-gray-900">${{ form.tax.toFixed(2) }}</span>
+                            <span v-else class="font-bold text-gray-900">${{ form.tax_rate.toFixed(2) }}</span>
                         </div>
 
                         <div class="flex justify-between items-center text-sm">
@@ -579,8 +579,8 @@ const form = reactive({
     sales_channel_id: null,
     warehouse_id: null,
     order_status: null,
-    tax: 0,
-    discount: 0,
+    tax_rate: 0,
+    discount_global: 0,
     shipping: 0,
     notes: '',
     items: [],
@@ -628,7 +628,7 @@ const currentStatus = computed(() => {
 // Totals calculation
 const totals = computed(() => {
     const subtotal = form.items.reduce((sum, item) => sum + (item.quantity * item.unit_price - (item.discount || 0)), 0);
-    const total = subtotal + (form.tax || 0) + (form.shipping || 0) - (form.discount || 0);
+    const total = subtotal + (form.tax_rate || 0) + (form.shipping || 0) - (form.discount_global || 0);
     return { subtotal, total };
 });
 
@@ -681,10 +681,10 @@ const addItem = (entry) => {
             product_sku: entry.product?.sku,
             batch_number: entry.batch_number || 'N/A',
             quantity: 1,
-            unit_price: Number(entry.selling_price), // Auto-complete price from entry
-            unit_cost: Number(entry.cost_per_unit),
+            unit_price: Number(entry.unit_price), // Auto-complete price from entry
+            unit_cost: Number(entry.unit_cost),
             discount: 0,
-            tax: 0
+            tax_rate: 0
         });
     }
     productSearch.value = '';
@@ -734,8 +734,8 @@ const fetchOrder = async () => {
             customer_id: order.customer_id,
             sales_channel_id: order.sales_channel_id,
             warehouse_id: order.warehouse_id,
-            tax: Number(order.tax),
-            discount: Number(order.discount),
+            tax_rate: Number(order.tax_rate),
+            discount_global: Number(order.discount_global),
             shipping: Number(order.shipping),
             notes: order.notes,
             created_at: order.created_at,
@@ -752,7 +752,7 @@ const fetchOrder = async () => {
                 unit_price: Number(item.unit_price),
                 unit_cost: Number(item.unit_cost || 0),
                 discount: Number(item.discount || 0),
-                tax: Number(item.tax || 0)
+                tax_rate: Number(item.tax_rate || 0)
             }))
         });
         
