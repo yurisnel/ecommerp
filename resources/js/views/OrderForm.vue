@@ -422,7 +422,7 @@
                     </div>
                       
                      <button                            
-                            @click="showStatusModal = true"
+                            @click="openStatusModal"
                             class="w-full mt-4 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                         >
                             <Icon icon="mdi:plus" class="h-4 w-4" />
@@ -449,7 +449,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">New Status</label>
                         <select v-model="statusForm.order_status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                             <option :value="null">Select status...</option>
-                            <option v-for="s in statuses" :key="s.slug" :value="s.slug">{{ s.name }}</option>
+                            <option v-for="s in validStatuses" :key="s.slug" :value="s.slug">{{ s.name }}</option>
                         </select>
                     </div>
                     <div>
@@ -543,6 +543,7 @@ const customers = ref([]);
 const channels = ref([]);
 const warehouses = ref([]);
 const statuses = ref([]);
+const validStatuses = ref([]);
 const paymentMethods = ref([]);
 const selectedCustomer = ref(null);
 const customerQuery = ref('');
@@ -724,6 +725,18 @@ const fetchInitialData = async () => {
     }
 };
 
+const openStatusModal = () => {
+    showStatusModal.value = true;
+    statusForm.order_status = null;
+    statusForm.notes = '';
+    statusForm.status_date = new Date().toISOString().substr(0, 10);
+    
+    // Select first valid status by default
+    if (validStatuses.value.length > 0) {
+        statusForm.order_status = validStatuses.value[0].slug;
+    }
+};
+
 const fetchOrder = async () => {
     if (!isEditing.value) return;
     try {
@@ -760,6 +773,16 @@ const fetchOrder = async () => {
         if (order.customer) {
             selectedCustomer.value = order.customer;
         }
+
+        // Fetch valid status transitions (loaded with order)
+        try {
+            const transitionsResponse = await api.get(`/orders/${route.params.id}/valid-transitions`);
+            validStatuses.value = transitionsResponse.data.data.valid_transitions || [];
+        } catch (e) {
+            console.error('Error fetching valid transitions:', e);
+            validStatuses.value = statuses.value;
+        }
+
     } catch (error) {
         console.error('Error fetching order:', error);
     }

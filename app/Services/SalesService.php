@@ -119,8 +119,6 @@ class SalesService
         }
     }
 
-
-
     /**
      * Add item to sales order
      * 
@@ -150,7 +148,6 @@ class SalesService
         $taxRate  = $data['tax_rate'] ?? 1;
         $taxAmount = round($subtotalAfterDiscount * $taxRate, 2);
 
-
         return SalesOrderItem::create([
             'sales_order_id' => $order->id,
             'product_id' => $productEntry->product_id,
@@ -167,7 +164,6 @@ class SalesService
             'notes' => $data['notes'] ?? null,
         ]);
     }
-
 
     /**
      * Transition order to a new status with validation
@@ -195,7 +191,6 @@ class SalesService
                     break;
             }
 
-
             $newStatus = OrderStatus::where('slug', $toStatus)->firstOrFail();
             $order->order_status_id = $newStatus->id;
             $order->save();
@@ -218,16 +213,24 @@ class SalesService
         }
     }
 
-
     /**
-     * Coonfirm Reserve
+     * Confirm order and process inventory
      * 
      * @param SalesOrder $order
      * @return bool
-     * 
+     * @throws Exception
      */
     protected function confirmOrder($order): bool
     {
+        // Validate that the order has all payments completed
+        $totalPaid = $order->payments()
+            ->where('status', 'completed')
+            ->sum('amount');
+        
+        if ($totalPaid < $order->total - 0.01) {
+            throw new Exception('Cannot confirm order: payment not complete. Paid: $' . number_format($totalPaid, 2) . ' / Total: $' . number_format($order->total, 2));
+        }
+
         // Process each item
         foreach ($order->items as $item) {
             // Release reservation
@@ -266,46 +269,41 @@ class SalesService
     /**
      * Cancel sales order and release inventory
      * 
-     * @param SalesOrder $orderId
-     * @return bool     *
+     * @param SalesOrder $order
+     * @return bool
      */
     public function cancelOrder($order): bool
     {
         $currentStatus = $order->currentStatus?->slug;
 
         foreach ($order->items as $item) {
-            // Release reserved inventory for pending orders
+            if ($currentStatus === EOrderStatus::PENDING) {
+                $this->inventoryService->releaseReservedInventory(
+                    $item->product_id,
+                    $order->warehouse_id,
+                    $item->quantity
+                );
+            } else if (in_array($currentStatus, [EOrderStatus::CONFIRMED, EOrderStatus::PROCESSING, EOrderStatus::SHIPPED])) {
+                // Return inventory for confirmed/processing orders
+                $this->inventoryService->updateInventory(
+                    $item->product_id,
+                    $order->warehouse_id,
+                    $item->quantity,
+                    'add'
+                );
 
-            foreach ($order->items as $item) {
-                if ($currentStatus === EOrderStatus::PENDING) {
-                    $this->inventoryService->releaseReservedInventory(
-                        $item->product_id,
-                        $order->warehouse_id,
-                        $item->quantity
-                    );
-                } else  if (in_array($currentStatus, [EOrderStatus::CONFIRMED, EOrderStatus::PROCESSING, EOrderStatus::SHIPPED])) {
-
-                    // Return inventory for confirmed/processing orders
-                    $this->inventoryService->updateInventory(
-                        $item->product_id,
-                        $order->warehouse_id,
-                        $item->quantity,
-                        'add'
-                    );
-
-                    // Create stock movement for return
-                    $this->inventoryService->createStockMovement([
-                        'product_id' => $item->product_id,
-                        'warehouse_id' => $order->warehouse_id,
-                        'type' => 'in',
-                        'quantity' => $item->quantity,
-                        'reference_type' => 'sales_order_cancellation',
-                        'reference_id' => $order->id,
-                        'notes' => 'Order cancellation: ' . $order->order_number,
-                        'created_by' => auth()->id(),
-                        'movement_date' => now(),
-                    ]);
-                }
+                // Create stock movement for return
+                $this->inventoryService->createStockMovement([
+                    'product_id' => $item->product_id,
+                    'warehouse_id' => $order->warehouse_id,
+                    'type' => 'in',
+                    'quantity' => $item->quantity,
+                    'reference_type' => 'sales_order_cancellation',
+                    'reference_id' => $order->id,
+                    'notes' => 'Order cancellation: ' . $order->order_number,
+                    'created_by' => auth()->id(),
+                    'movement_date' => now(),
+                ]);
             }
         }
         return true;
@@ -337,7 +335,6 @@ class SalesService
             ]);
 
             // Check if order is fully paid and update status to confirmed
-            // Calculate total paid amount for this order
             $totalPaid = $order->payments()
                 ->where('status', 'completed')
                 ->sum('amount');
@@ -365,7 +362,6 @@ class SalesService
      * 
      * @return string
      */
-
     private function generateOrderNumber(): string
     {
         $prefix = 'ORD';
@@ -374,7 +370,6 @@ class SalesService
         $counter = SalesOrder::whereDate('created_at', now())->count() + 1;
         return sprintf('%s-%s-%04d', $prefix, $today, $counter);
     }
-
 
     /**
      * Get order statistics

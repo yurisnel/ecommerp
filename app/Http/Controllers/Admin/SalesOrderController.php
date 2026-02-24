@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\OrderStatus;
 use App\Models\OrderStatusHistory;
+use App\Enums\EOrderStatus;
 
 class SalesOrderController extends BaseController
 {
@@ -158,5 +159,28 @@ class SalesOrderController extends BaseController
             'items.*.discount' => 'nullable|numeric|min:0',
             'items.*.tax' => 'nullable|numeric|min:0',
         ]);
+    }
+
+    /**
+     * Get valid status transitions for an order
+     */
+    public function getValidTransitions(int $id): JsonResponse
+    {
+        $order = $this->service->getById($id, ['orderStatus']);
+        
+        if (!$order) {
+            return $this->errorResponse('Order not found', 404);
+        }
+
+        $currentStatus = $order->orderStatus->slug ?? '';
+        $validTransitions = EOrderStatus::getValidTransitions($currentStatus);
+        
+        // Get status details for valid transitions
+        $validStatuses = OrderStatus::whereIn('slug', $validTransitions)->get(['id', 'name', 'slug', 'color']);
+
+        return $this->successResponse([
+            'current_status' => $currentStatus,
+            'valid_transitions' => $validStatuses,
+        ], 'Valid transitions retrieved successfully');
     }
 }
