@@ -89,16 +89,15 @@ class SalesService
             }
             //$globalDiscount = $subtotalAfterLineDiscount * ($data['discount'] / 100);
           
-            $orderDiscountTotal = $lineDiscountTotal + $discountGlobal;
-
+   
             // Update order totals
             $order->subtotal = $lineSubtotal;
             $order->discount_global = $discountGlobal;
-            $order->discount_total = $orderDiscountTotal;
+            $order->discount_total = $lineDiscountTotal + $discountGlobal;
             $order->tax_rate = $taxRate;
             $order->tax_amount = $lineTaxAmountTotal;
             $order->subtotal_after_discount = $subtotalAfterLineDiscount;
-            $order->total = $lineSubtotal - $orderDiscountTotal + $lineTaxAmountTotal + $order->shipping;
+            $order->total = $lineSubtotal -  $order->discount_total + $lineTaxAmountTotal + ($order->shipping ?? 0);
 
             $order->save();
 
@@ -164,6 +163,55 @@ class SalesService
             'notes' => $data['notes'] ?? null,
         ]);
     }
+
+    /**
+     * Delete an order item
+     */
+    public function deleteItem(int $orderId, int $itemId)
+    {
+        $item = SalesOrderItem::where('id', $itemId)
+            ->where('sales_order_id', $orderId)
+            ->first();
+
+        if (!$item) {
+            throw new \Exception('Order item not found');
+        }
+
+        // Check if order is in editable status (pending)
+        $order = $item->salesOrder()->with('orderStatus')->first();
+        $currentStatus = $order->orderStatus->slug ?? '';
+        
+        if ($currentStatus !== EOrderStatus::PENDING) {
+            throw new \Exception('Cannot delete items from orders that are not in pending status');
+        }
+
+        $item->delete();
+
+        // Recalculate order totals
+        $this->recalculateOrderTotals($orderId);
+
+        return true;
+    }
+
+    /**
+     * Recalculate order totals after item changes
+     */
+    protected function recalculateOrderTotals(int $orderId): void
+    {
+        $order = SalesOrder::with('items')->findOrFail($orderId);
+        
+        $subtotal = $order->items->sum('subtotal');
+        $discountTotal = $order->items->sum('discount');
+        $lineTaxAmountTotal = $order->items->sum('tax_amount');
+        $discountGlobal = $order->discount_global ?? 0;
+        
+        $order->subtotal = $subtotal;
+        $order->discount_total = $discountTotal + $discountGlobal;
+        $order->tax_amount = $lineTaxAmountTotal;
+        $order->total = $subtotal - $discountTotal - $discountGlobal + $lineTaxAmountTotal + ($order->shipping ?? 0);
+        $order->save();
+    }
+
 
     /**
      * Transition order to a new status with validation
@@ -422,6 +470,26 @@ class SalesService
             'total_sales_amount' => (float) $totalSales,
             'total_cost_amount' => (float) $costProduct,
             'total_profit_amount' => (float) $netProfit
+        ];
+    }
+
+    /**
+     * Get valid status transitions for an order
+     */
+    public function getValidTransitions(int $orderId)
+    {
+        $order = SalesOrder::with('orderStatus')->findOrFail($orderId);
+      
+
+        $currentStatus = $order->orderStatus->slug ?? '';
+        $validTransitions = EOrderStatus::getValidTransitions($currentStatus);
+        
+        // Get status details for valid transitions
+        $validStatuses = OrderStatus::whereIn('slug', $validTransitions)->get(['id', 'name', 'slug', 'color']);
+
+        return [
+            'current_status' => $currentStatus,
+            'valid_transitions' => $validStatuses
         ];
     }
 }
