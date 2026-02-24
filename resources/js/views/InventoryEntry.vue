@@ -39,8 +39,8 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Product Search -->
                             <div class="relative z-30">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Search Product *</label>
-                                <Combobox v-model="selectedProduct" @update:modelValue="onProductSelect">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Product *</label>
+                                <Combobox v-model="selectedProduct" @update:modelValue="onProductSelect" :disabled="isProductLocked">
                                     <div class="relative">
                                         <div class="relative w-full cursor-default overflow-hidden rounded-xl bg-white text-left border border-gray-300 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
                                             <ComboboxInput
@@ -48,6 +48,7 @@
                                                 :displayValue="(product) => product?.name"
                                                 @change="onProductSearch($event.target.value)"
                                                 placeholder="Type name or SKU..."
+                                                :disabled="isProductLocked"
                                             />
                                             <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-3">
                                                 <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -151,23 +152,25 @@
                             <!-- Batch Number -->
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Batch / Lot #</label>
-                                <input v-model="form.batch_number" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm" placeholder="e.g. BTC-2024-001">
+                                <input v-model="form.batch_number" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm" placeholder="e.g. LOT-20240114-001">
                             </div>
 
                             <!-- Entry Date -->
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Arrival Date *</label>
-                                <input v-model="form.entry_date" type="date" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm">
+                                <input v-model="form.entry_date" type="datetime-local" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 p-6 rounded-2xl border border-gray-100">
                             <!-- Quantity -->
                             <div>
-                                <label class="block text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Quantity *</label>
+                                <label class="block text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Quantity * 
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase">{{ selectedProduct?.unit || 'Pcs' }}</span>
+                                </label>
+                                
                                 <div class="relative">
-                                    <input v-model.number="form.quantity" type="number" min="0.01" step="0.01" class="w-full px-4 py-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
-                                    <span class="absolute right-4 top-3 text-[10px] font-bold text-gray-400 uppercase">{{ selectedProduct?.unit || 'Pcs' }}</span>
+                                    <input v-model.number="form.quantity" type="number" min="1" :step="stepQuantity" class="w-full px-4 py-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
                                 </div>
                             </div>
 
@@ -176,16 +179,16 @@
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Unit Cost (Inc. Tax) *</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-3 text-gray-400">$</span>
-                                    <input v-model.number="form.unit_cost" type="number" min="0" step="0.01" class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
+                                    <input v-model.number="form.unit_cost" type="number" min="0" step="0.1" class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
                                 </div>
                             </div>
 
                             <!-- Selling Price -->
                             <div>
-                                <label class="block text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">New Selling Price *</label>
+                                <label class="block text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Selling Price *</label>
                                 <div class="relative">
                                     <span class="absolute left-4 top-3 text-emerald-400">$</span>
-                                    <input v-model.number="form.unit_price" type="number" min="0" step="0.01" class="w-full pl-8 pr-4 py-3 border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-bold text-emerald-700">
+                                    <input v-model.number="form.unit_price" type="number" min="0" step="0.1" class="w-full pl-8 pr-4 py-3 border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-bold text-emerald-700">
                                 </div>
                             </div>
                         </div>
@@ -225,8 +228,12 @@
                                     <p class="text-lg font-bold">{{ detailedProductData.total_quantity || 0 }}</p>
                                 </div>
                                 <div class="text-center flex-1">
-                                    <p class="text-[10px] text-indigo-300 uppercase font-bold">Costo Base</p>
+                                    <p class="text-[10px] text-indigo-300 uppercase font-bold">Last Costo</p>
                                     <p class="text-lg font-bold">${{ Number(detailedProductData.product.latest_entry?.unit_cost || 0).toFixed(2) }}</p>
+                                </div>
+                                 <div class="text-center flex-1">
+                                    <p class="text-[10px] text-indigo-300 uppercase font-bold">Last Price</p>
+                                    <p class="text-lg font-bold">${{ Number(detailedProductData.product.latest_entry?.unit_price || 0).toFixed(2) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -254,11 +261,17 @@
                                 {{ margin.toFixed(1) }}%
                             </span>
                         </div>
+  
+                        <div class="pt-4 border-t border-gray-100 flex justify-between items-center font-bold">
+                            <span class="text-gray-900 text-xs">Total Profit Estimated</span>
+                            <span class="text-indigo-600">${{ (form.quantity * (form.unit_price - form.unit_cost )).toFixed(2) }}</span>
+                        </div>
 
                         <div class="pt-4 border-t border-gray-100 flex justify-between items-center font-bold">
                             <span class="text-gray-900 text-xs">Total Investment</span>
                             <span class="text-indigo-600">${{ (form.quantity * form.unit_cost).toFixed(2) }}</span>
                         </div>
+
                     </div>
 
                     <!-- Warning for low margin -->
@@ -296,7 +309,14 @@ const loadingDetails = ref(false);
 const detailedProductData = ref(null);
 
 const isEdit = computed(() => !!route.params.id);
-
+const isProductLocked = computed(() => !!route.query.product_id);
+const stepQuantity = computed(() => {
+    if(selectedProduct?.value?.unit){
+        let unit = selectedProduct.value.unit;
+        return unit === 'kg' || unit === 'meter' ? 0.01 : 1
+    }
+    return 1;
+})
 const warehouses = ref([]);
 const warehouseQuery = ref('');
 const selectedWarehouse = ref(null);
@@ -317,7 +337,7 @@ const form = reactive({
     quantity: 0,
     unit_cost: 0,
     unit_price: 0,
-    entry_date: new Date().toISOString().split('T')[0],
+    entry_date: new Date().toISOString().slice(0, 16),
     batch_number: '',
     notes: ''
 });
@@ -395,8 +415,19 @@ const fetchProductDetails = async (productId) => {
         
         // Update form with latest suggestions
         if (detailedProductData.value.product.latest_entry) {
-            form.unit_cost = detailedProductData.value.product.latest_entry.unit_cost;
-            form.unit_price = detailedProductData.value.product.latest_entry.unit_price;
+            let latestEntry = detailedProductData.value.product.latest_entry;
+            form.unit_cost = latestEntry.unit_cost;
+            form.unit_price = latestEntry.unit_price;
+
+            warehouses.value.filter(w => w.id === latestEntry.warehouse_id).forEach(w => {
+                selectedWarehouse.value = w;
+                form.warehouse_id = w.id;
+            });
+
+            suppliers.value.filter(s => s.id === latestEntry.supplier_id).forEach(s => {
+                selectedSupplier.value = s;
+                form.supplier_id = s.id;
+            });
         }
     } catch (error) {
         console.error('Error fetching product details:', error);
@@ -470,6 +501,13 @@ onMounted(async () => {
     await loadDependencies();
     if (isEdit.value) {
         fetchEntryDetails(route.params.id);
+    }else if(route.query.product_id){
+        const prodId = route.query.product_id;
+        const response = await api.get(`/products/${prodId}`);
+        
+        selectedProduct.value = response.data.data;
+        form.product_id = prodId;
+        fetchProductDetails(prodId);
     }
 });
 </script>
