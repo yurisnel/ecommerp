@@ -98,7 +98,7 @@ Route::prefix('v1')->group(function () {
     Route::post('orders/payment', [SalesOrderController::class, 'processPayment']);
     Route::post('orders/{id}/update-status', [SalesOrderController::class, 'updateStatus']);
     Route::get('orders/{id}/valid-transitions', [SalesOrderController::class, 'getValidTransitions']);
-    Route::delete('orders/{orderId}/items/{itemId}', [SalesOrderController::class, 'deleteItem']);
+    Route::delete('orders/{orderId}/items/{itemId}', [SalesOrderController::class, 'deleteOrderItem']);
 
     Route::apiResource('orders', SalesOrderController::class);
     Route::apiResource('sales-channels', SalesChannelController::class);

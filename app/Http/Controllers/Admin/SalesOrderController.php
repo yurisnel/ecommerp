@@ -26,9 +26,9 @@ class SalesOrderController extends BaseController
     {
         $perPage = $request->get('per_page', 15);
         $filters = $request->only([
-            'search', 
-            'status', 
-            'customer_id', 
+            'search',
+            'status',
+            'customer_id',
             'warehouse_id',
             'sales_channel_id',
             'payment_method_id',
@@ -120,7 +120,7 @@ class SalesOrderController extends BaseController
         $history = $this->salesService->updateStatus($id, $validated);
         $history->load('status');
 
-        return $this->successResponse($history, 'Status update successfully', 201);        
+        return $this->successResponse($history, 'Status update successfully', 201);
     }
 
     /**
@@ -162,8 +162,7 @@ class SalesOrderController extends BaseController
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_entry_id' => 'nullable|exists:product_entries,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.unit_cost' => 'nullable|numeric|min:0',
+
             'items.*.discount' => 'nullable|numeric|min:0',
             'items.*.tax_rate' => 'nullable|numeric|min:0',
         ]);
@@ -181,10 +180,9 @@ class SalesOrderController extends BaseController
     /**
      * Delete an order item
      */
-    public function deleteItem(int $orderId, int $itemId): JsonResponse
+    public function deleteOrderItem(int $orderId, int $itemId): JsonResponse
     {
-        $this->salesService->deleteItem($orderId, $itemId);       
+        $this->salesService->deleteOrderItem($orderId, $itemId);
         return $this->successResponse(null, 'Order item deleted successfully');
     }
-    
 }

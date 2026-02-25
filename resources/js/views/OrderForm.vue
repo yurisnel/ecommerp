@@ -632,7 +632,7 @@ const canEdit = computed(() => {
     
     // If order_status is already loaded as an object with slug
     if (form.order_status && form.order_status.slug) {
-        return ['pending', 'cancelled'].includes(form.order_status.slug);
+        return ['pending'].includes(form.order_status.slug);
     }
     // If statuses not loaded yet, allow editing by default (will be validated on submit)
     return true;
