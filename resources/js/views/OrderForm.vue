@@ -10,7 +10,7 @@
              
                 <button 
                     @click="submit" 
-                    :disabled="submitting || (!isEditing && !isValidOrder)"
+                    :disabled="submitting || !canEdit || !isValidOrder"
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                     <span v-if="submitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -41,7 +41,7 @@
                         <div class="relative">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
                             
-                            <Combobox v-model="selectedCustomer" :disabled="isEditing">
+                            <Combobox v-model="selectedCustomer" :disabled="!canEdit">
                                 <div class="relative mt-1">
                                     <div class="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left border border-gray-300 focus-within:ring-2 focus-within:ring-indigo-500 sm:text-sm">
                                         <ComboboxInput
@@ -83,7 +83,7 @@
                         </div>
                         <div class="flex items-end">
                             <router-link 
-                                v-if="!isEditing"
+                                v-if="canEdit"
                                 :to="{ name: 'CustomerCreate' }" 
                                 class="text-indigo-600 text-sm font-semibold hover:text-indigo-800 pb-2"
                             >
@@ -97,7 +97,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Sales Channel <span class="text-red-500">*</span></label>
                             <select 
                                 v-model="form.sales_channel_id" 
-                                :disabled="isEditing"
+                                :disabled="!canEdit"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             >
                                 <option :value="null">Select channel...</option>
@@ -133,7 +133,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="px-4 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <h3 class="text-lg font-medium text-gray-900">Order Items</h3>
-                        <div v-if="!isEditing" class="relative">
+                        <div v-if="canEdit" class="relative">
                             <div class="flex items-center gap-2">
                                 <span class="text-xs text-gray-500">Search Batch/Entry:</span>
                                 <input 
@@ -180,7 +180,7 @@
                                 <th class="px-4 py-3 text-right">Price</th>
                                 <th class="px-4 py-3 text-right">Discount</th>
                                 <th class="px-4 py-3 text-right">Subtotal</th>
-                                <th v-if="!isEditing" class="px-4 py-3 text-center">Actions</th>
+                                <th v-if="canEdit" class="px-4 py-3 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -198,7 +198,7 @@
                                 <td class="px-4 py-4">
                                     <div class="flex justify-center">
                                         <input 
-                                            v-if="!isEditing"
+                                            v-if="canEdit"
                                             v-model.number="item.quantity" 
                                             type="number" min="1" step="1"
                                             class="w-20 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
@@ -209,9 +209,9 @@
                                 </td>
                                 <td class="px-4 py-4 text-right">
                                     <div class="flex items-center justify-end">
-                                        <span v-if="!isEditing && false" class="text-gray-400 mr-1">$</span>
+                                        <span v-if="canEdit && false" class="text-gray-400 mr-1">$</span>
                                         <input 
-                                            v-if="!isEditing && false"
+                                            v-if="canEdit && false"
                                             v-model.number="item.unit_price" 
                                             type="number" min="0" step="1"
                                             class="w-24 px-2 py-1 border border-gray-300 rounded text-right text-sm focus:ring-1 focus:indigo-500 outline-none"
@@ -222,15 +222,14 @@
                                 </td>
                                 <td class="px-4 py-4 text-right">
                                     <div class="flex items-center justify-end">
-                                        <span v-if="!isEditing" class="text-gray-400 mr-1">$</span>
+                                        <span v-if="canEdit" class="text-gray-400 mr-1">$</span>
                                         <input 
-                                            v-if="!isEditing"
+                                            v-if="canEdit"
                                             v-model.number="item.discount" 
                                             type="number" min="0" step="1"
                                             class="w-20 px-2 py-1 border border-gray-300 rounded text-right text-sm focus:ring-1 focus:indigo-500 outline-none"
                                             @input="calculateTotal"
                                         >
-                                        <span v-else class="text-rose-600 font-medium">-${{ item.discount.toFixed(2) }}</span>
                                     </div>
                                 </td>
                                 <td class="px-4 py-4 text-right">
@@ -242,8 +241,8 @@
                                     <button 
                                         @click="removeItem(index)" 
                                         class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-                                        :title="isEditing && currentStatus?.slug !== 'pending' ? 'Cannot remove items from non-pending orders' : 'Remove item'"
-                                        :disabled="isEditing && currentStatus?.slug !== 'pending'"
+                                        :title="!canEdit ? 'Cannot remove items from non-editable orders' : 'Remove item'"
+                                        :disabled="!canEdit"
                                     >
                                         <Icon icon="mdi:trash-can" class="h-5 w-5" />
                                     </button>
@@ -261,7 +260,7 @@
                         rows="3"
                         placeholder="Add any additional details or customer instructions..."
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        :disabled="isEditing && currentStatus?.slug !== 'pending'"
+                        :disabled="!canEdit"
                     ></textarea>
                 </div>
             </div>
@@ -283,7 +282,7 @@
                         
                         <div class="flex justify-between items-center text-sm pt-2 border-t border-gray-50">
                             <span class="text-gray-500">Global Discount</span>
-                            <div v-if="!isEditing" class="flex items-center">
+                            <div v-if="canEdit" class="flex items-center">
                                 <span class="text-[10px] text-gray-400 mr-1">$</span>
                                 <input 
                                     v-model.number="form.discount_global" 
@@ -296,7 +295,7 @@
 
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-gray-500">Taxes</span>
-                            <div v-if="!isEditing" class="flex items-center">
+                            <div v-if="canEdit" class="flex items-center">
                                 <span class="text-[10px] text-gray-400 mr-1">%</span>
                                 <input 
                                     v-model.number="form.tax_rate" 
@@ -309,7 +308,7 @@
 
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-gray-500">Shipping Fee</span>
-                            <div v-if="!isEditing" class="flex items-center">
+                            <div v-if="canEdit" class="flex items-center">
                                 <span class="text-[10px] text-gray-400 mr-1">$</span>
                                 <input 
                                     v-model.number="form.shipping" 
@@ -401,12 +400,7 @@
                         <Icon icon="mdi:check-circle" class="h-5 w-5 text-emerald-600" />
                         Order Status
                     </h3>
-                    <div v-if="currentStatus" class="mb-4 flex items-center gap-2 relative z-10">
-                        <span class="text-xs font-bold text-gray-500 uppercase">Current:</span>
-                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold text-white" :style="{ backgroundColor: currentStatus.color || '#6b7280' }">
-                            {{ currentStatus.name }}
-                        </span>
-                    </div>
+
                     <div class="space-y-4 text-sm relative z-10">                    
                         <div class="mt-4">                            
                             <ul class="divide-y divide-gray-100 text-sm">
@@ -630,9 +624,18 @@ const isValidOrder = computed(() => {
     return form.customer_id && form.sales_channel_id && form.warehouse_id && form.items.length > 0;
 });
 
-// Get current status object
-const currentStatus = computed(() => {
-    return statuses.value.find(s => s.slug === form.order_status.slug) || null;
+
+// Check if order can be edited (pending or cancelled status)
+const canEdit = computed(() => {
+    // If not editing, always allow (new order)
+    if (!isEditing.value) return true;
+    
+    // If order_status is already loaded as an object with slug
+    if (form.order_status && form.order_status.slug) {
+        return ['pending', 'cancelled'].includes(form.order_status.slug);
+    }
+    // If statuses not loaded yet, allow editing by default (will be validated on submit)
+    return true;
 });
 
 // Totals calculation
@@ -706,15 +709,16 @@ const removeItem = async (index) => {
     
     // If editing and item has an ID, call API to delete
     if (isEditing.value && item.id) {
-        if (!confirm('Are you sure you want to remove this item from the order?')) {
+        const result = await swal.confirm('Are you sure you want to remove this item from the order?', 'Remove Item');
+        if (!result.isConfirmed) {
             return;
         }
         
         try {
             await api.delete(`/orders/${route.params.id}/items/${item.id}`);
-            form.items.splice(index, 1);
-            // Refresh order to get updated totals
             fetchOrder();
+            form.items.splice(index, 1);
+
         } catch (error) {
             swal.error(error.response?.data?.message || 'Failed to remove item');
         }
@@ -776,6 +780,7 @@ const fetchOrder = async () => {
             customer_id: order.customer_id,
             sales_channel_id: order.sales_channel_id,
             warehouse_id: order.warehouse_id,
+            order_status: order.order_status,
             tax_rate: Number(order.tax_rate),
             discount_global: Number(order.discount_global),
             shipping: Number(order.shipping),

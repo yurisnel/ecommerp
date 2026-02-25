@@ -163,6 +163,7 @@ import { ref, reactive, onMounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import api from '../axios';
 import { debounce } from 'lodash';
+import swal from '../utils/swal';
 
 const products = ref([]);
 const loading = ref(false);
@@ -236,17 +237,16 @@ const debouncedFetch = debounce(() => {
 
 
 const deleteProduct = async (id) => {
-    if (!confirm('Are you sure you want to delete this product? This will also remove all its inventory records and images.')) {
-        return;
-    }
+    const result = await swal.confirm('Are you sure you want to delete this product? This will also remove all its inventory records and images.', 'Delete Product');
+    if (!result.isConfirmed) return;
 
     try {
         await api.delete(`/products/${id}`);
-        alert('Product deleted successfully');
+        swal.success('Product deleted successfully');
         fetchData(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting product:', error);
-        alert(error.response?.data?.message || 'Failed to delete product');
+        swal.error(error.response?.data?.message || 'Failed to delete product');
     }
 };
 

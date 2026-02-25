@@ -212,6 +212,7 @@ import { useRoute, useRouter } from 'vue-router';
 import api from '../axios';
 import ImageUploader from '../components/ImageUploader.vue';
 import { Switch } from '@headlessui/vue';
+import swal from '../utils/swal';
 
 const route = useRoute();
 const router = useRouter();
@@ -247,8 +248,9 @@ const onImageError = (event) => {
     event.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23d1d5db%22%3E%3Cpath d=%22M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z%22/%3E%3C/svg%3E';
 };
 
-const confirmRemoveImage = () => {
-    if (!confirm('Are you sure you want to remove the image?')) return;
+const confirmRemoveImage = async () => {
+    const result = await swal.confirm('Are you sure you want to remove the image?', 'Remove Image');
+    if (!result.isConfirmed) return;
     form.image = '';
 };
 
@@ -313,7 +315,7 @@ const submit = async () => {
             errors.value = error.response.data.errors;
         } else {
             console.error('Error saving customer:', error);
-            alert('Failed to save customer');
+            swal.error('Failed to save customer');
         }
     } finally {
         submitting.value = false;
@@ -322,7 +324,7 @@ const submit = async () => {
 
 // Address actions (Stub for now, will implement properly if high priority)
 const openAddressModal = (addr = null) => {
-    alert('Address management feature is coming next!');
+    swal.info('Address management feature is coming next!');
 };
 
 const setDefaultAddress = async (id) => {
@@ -335,7 +337,8 @@ const setDefaultAddress = async (id) => {
 };
 
 const deleteAddress = async (id) => {
-    if (!confirm('Are you sure?')) return;
+    const result = await swal.confirm('Are you sure you want to delete this address?', 'Delete Address');
+    if (!result.isConfirmed) return;
     try {
         await api.delete(`/addresses/${id}`);
         fetchAddresses();

@@ -144,6 +144,7 @@
 import { ref, onMounted, reactive } from 'vue';
 import api from '../axios';
 import { debounce } from 'lodash';
+import swal from '../utils/swal';
 
 const categories = ref([]);
 const loading = ref(false);
@@ -191,14 +192,15 @@ const debouncedFetch = debounce(() => {
 }, 300);
 
 const deleteCategory = async (id) => {
-    if (!confirm('Are you sure you want to delete this category? All its subcategories might be affected.')) return;
+    const result = await swal.confirm('Are you sure you want to delete this category? All its subcategories might be affected.', 'Delete Category');
+    if (!result.isConfirmed) return;
     
     try {
         await api.delete(`/categories/${id}`);
         fetchCategories(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting category:', error);
-        alert('Failed to delete category.');
+        swal.error('Failed to delete category.');
     }
 };
 

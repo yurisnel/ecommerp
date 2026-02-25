@@ -361,6 +361,7 @@ import { ref, onMounted, computed, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import api from '../axios';
+import swal from '../utils/swal';
 import {
     Listbox,
     ListboxButton,
@@ -497,7 +498,7 @@ const handleFileUpload = async (event) => {
         }
     } catch (error) {
         console.error('Upload failed:', error);
-        alert('Some images failed to upload. Please try again.');
+        swal.error('Some images failed to upload. Please try again.');
     } finally {
         uploading.value = false;
         uploadProgress.value = '';
@@ -576,7 +577,7 @@ const applyCrop = async (cropData) => {
             }
         } catch (error) {
             console.error('Error uploading cropped image:', error);
-            alert('Failed to save cropped image');
+            swal.error('Failed to save cropped image');
         } finally {
             uploading.value = false;
             showCropper.value = false;
@@ -643,7 +644,7 @@ const fetchProduct = async () => {
         }
     } catch (error) {
         console.error('Error fetching product:', error);
-        alert('Failed to load product details');
+        swal.error('Failed to load product details');
     }
 };
 
@@ -670,7 +671,7 @@ const submit = async () => {
             }
         } else {
             console.error('Error saving product:', error);
-            alert('An error occurred while saving the product');
+            swal.error('An error occurred while saving the product');
         }
     } finally {
         submitting.value = false;

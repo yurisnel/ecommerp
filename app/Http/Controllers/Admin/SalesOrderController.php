@@ -74,7 +74,7 @@ class SalesOrderController extends BaseController
     public function show(string|int $id): JsonResponse
     {
         $id = (int) $id;
-        $relations = ['customer', 'salesChannel', 'warehouse', 'items.product', 'items.productEntry', 'statusHistories.status', 'statusHistories.changer', 'payments.paymentMethod'];
+        $relations = ['customer', 'salesChannel', 'warehouse', 'items.product', 'items.productEntry', 'statusHistories.status', 'statusHistories.changer', 'payments.paymentMethod', 'orderStatus'];
         $order = $this->service->getById($id, $relations);
 
         if (!$order) {
@@ -93,6 +93,16 @@ class SalesOrderController extends BaseController
         $order = $this->salesService->createSalesOrder($validated);
 
         return $this->successResponse($order, 'Sales order created successfully', 201);
+    }
+
+    /**
+     * Update sales order
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $validated = $this->validateRequest($request, $id);
+        $order = $this->salesService->updateSalesOrder($id, $validated);
+        return $this->successResponse($order, 'Sales order updated successfully');
     }
 
 

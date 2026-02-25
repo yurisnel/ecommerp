@@ -52,6 +52,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../axios';
+import swal from '../utils/swal';
 
 const route = useRoute();
 const router = useRouter();
@@ -82,7 +83,7 @@ const save = async () => {
     }
     router.push({ name: 'OrderStatuses' });
   } catch (e) {
-    alert(e.response?.data?.message || 'Save failed');
+    swal.error(e.response?.data?.message || 'Save failed');
   }
 };
 

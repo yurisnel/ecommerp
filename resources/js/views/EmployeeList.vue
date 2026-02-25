@@ -63,6 +63,7 @@
 import { ref, onMounted, reactive } from 'vue';
 import api from '../axios';
 import DataTable from '../components/DataTable.vue';
+import swal from '../utils/swal';
 import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
 
@@ -113,13 +114,14 @@ const handleSearch = debounce((val) => {
 }, 300);
 
 const deleteEmployee = async (id) => {
-    if (!confirm('Are you sure you want to delete this employee?')) return;
+    const result = await swal.confirm('Are you sure you want to delete this employee?', 'Delete Employee');
+    if (!result.isConfirmed) return;
     try {
         await api.delete(`/employees/${id}`);
         fetchData(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting employee:', error);
-        alert(error.response?.data?.message || 'Failed to delete employee');
+        swal.error(error.response?.data?.message || 'Failed to delete employee');
     }
 };
 

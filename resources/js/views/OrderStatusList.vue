@@ -40,6 +40,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import api from '../axios';
+import swal from '../utils/swal';
 
 const items = ref([]);
 const meta = ref({ current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null });
@@ -60,12 +61,13 @@ const edit = (id) => {
 };
 
 const del = async (id) => {
-  if (!confirm('Delete status?')) return;
+  const result = await swal.confirm('Delete status?', 'Delete Status');
+  if (!result.isConfirmed) return;
   try {
     await api.delete(`/order-statuses/${id}`);
     fetch(meta.value.current_page);
   } catch (e) {
-    alert(e.response?.data?.message || 'Delete failed');
+    swal.error(e.response?.data?.message || 'Delete failed');
   }
 };
 

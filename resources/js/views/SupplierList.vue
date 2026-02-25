@@ -142,6 +142,7 @@
 import { ref, onMounted, reactive } from 'vue';
 import api from '../axios';
 import { debounce } from 'lodash';
+import swal from '../utils/swal';
 
 const suppliers = ref([]);
 const loading = ref(false);
@@ -189,14 +190,15 @@ const debouncedFetch = debounce(() => {
 }, 300);
 
 const deleteSupplier = async (id) => {
-    if (!confirm('Are you sure you want to delete this supplier?')) return;
+    const result = await swal.confirm('Are you sure you want to delete this supplier?', 'Delete Supplier');
+    if (!result.isConfirmed) return;
     
     try {
         await api.delete(`/suppliers/${id}`);
         fetchSuppliers(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting supplier:', error);
-        alert('Failed to delete supplier.');
+        swal.error('Failed to delete supplier.');
     }
 };
 

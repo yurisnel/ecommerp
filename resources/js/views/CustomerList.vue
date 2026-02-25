@@ -67,6 +67,7 @@ import api from '../axios';
 import DataTable from '../components/DataTable.vue';
 import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
+import swal from '../utils/swal';
 
 const loading = ref(false);
 const items = ref([]);
@@ -119,14 +120,15 @@ const handleSearch = debounce((val) => {
 }, 300);
 
 const deleteCustomer = async (id) => {
-    if (!confirm('Are you sure you want to delete this customer?')) return;
+    const result = await swal.confirm('Are you sure you want to delete this customer?', 'Delete Customer');
+    if (!result.isConfirmed) return;
     
     try {
         await api.delete(`/customers/${id}`);
         fetchData(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting customer:', error);
-        alert(error.response?.data?.message || 'Failed to delete customer');
+        swal.error(error.response?.data?.message || 'Failed to delete customer');
     }
 };
 

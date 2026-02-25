@@ -142,6 +142,7 @@ import { ref, reactive, onMounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import api from '../axios';
 import { debounce } from 'lodash';
+import swal from '../utils/swal';
 
 const props = defineProps({
     productId: {
@@ -206,17 +207,16 @@ const debouncedFetch = debounce(() => {
 }, 300);
 
 const deleteEntry = async (id) => {
-    if (!confirm('Are you sure you want to delete this purchase entry? This will revert the stock in the warehouse. If the stock has already been used, deletion will fail.')) {
-        return;
-    }
+    const result = await swal.confirm('Are you sure you want to delete this purchase entry? This will revert the stock in the warehouse. If the stock has already been used, deletion will fail.', 'Delete Entry');
+    if (!result.isConfirmed) return;
 
     try {
         await api.delete(`/inventory/entries/${id}`);
-        alert('Entry deleted successfully');
+        swal.success('Entry deleted successfully');
         fetchData(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting entry:', error);
-        alert(error.response?.data?.message || 'Failed to delete entry');
+        swal.error(error.response?.data?.message || 'Failed to delete entry');
     }
 };
 

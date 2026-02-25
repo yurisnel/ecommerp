@@ -119,6 +119,154 @@ class SalesService
     }
 
     /**
+     * Update an existing sales order
+     * 
+     * @param int $orderId
+     * @param array $data
+     * @return SalesOrder
+     * @throws Exception
+     */
+    public function updateSalesOrder(int $orderId, array $data): SalesOrder
+    {
+        DB::beginTransaction();
+
+        try {
+            $order = SalesOrder::with('items')->findOrFail($orderId);
+            
+            // Check if order can be edited (not confirmed, processing, shipped, or delivered)
+            $editableStatuses = [EOrderStatus::PENDING, EOrderStatus::CANCELLED];
+            if (!in_array($order->orderStatus->slug, $editableStatuses)) {
+                throw new Exception('Only pending or cancelled orders can be edited');
+            }
+
+            // Update order fields
+            if(!empty($data['customer_id']))
+            $order->customer_id = $data['customer_id'];
+            
+            if(!empty($data['sales_channel_id']))
+            $order->sales_channel_id = $data['sales_channel_id'];
+
+            if(!empty($data['warehouse_id']))
+            $order->warehouse_id = $data['warehouse_id'];
+
+            if(!empty($data['shipping_address_id']))
+            $order->shipping_address_id = $data['shipping_address_id'];
+
+            if(!empty($data['billing_address_id']))
+            $order->billing_address_id = $data['billing_address_id'];
+
+            if(!empty($data['shipping_method_id']))
+            $order->shipping_method_id = $data['shipping_method_id'];
+
+            if(!empty($data['discount_rule_id']))
+            $order->discount_rule_id = $data['discount_rule_id'];
+
+            if(!empty($data['tax_rate']))
+            $order->tax_rate = $data['tax_rate'];
+
+            if(!empty($data['discount_global']))
+            $order->discount_global = $data['discount_global'];
+
+            if(!empty($data['shipping']))
+            $order->shipping = $data['shipping'];
+
+            if(!empty($data['shipping_address']))
+            $order->shipping_address = $data['shipping_address'];
+
+            if(!empty($data['billing_address']))
+            $order->billing_address = $data['billing_address'];
+
+            if(!empty($data['notes']))
+            $order->notes = $data['notes'];
+
+            if(!empty($data['order_date']))
+            $order->order_date = $data['order_date'];
+
+            // Get existing item IDs
+            $existingItemIds = $order->items->pluck('id')->toArray();
+            $newItemIds = collect($data['items'])->pluck('id')->filter()->toArray();
+            
+            // Items to delete (exist in order but not in new data)
+            $itemsToDelete = array_diff($existingItemIds, $newItemIds);
+            
+            // Delete removed items
+            if (!empty($itemsToDelete)) {
+                SalesOrderItem::whereIn('id', $itemsToDelete)->delete();
+            }
+
+            // Update or create items
+            $lineSubtotal = 0;
+            $lineDiscountTotal = 0;
+            $lineTaxAmountTotal = 0;
+            $subtotalAfterLineDiscount = 0;
+
+            foreach ($data['items'] as $itemData) {
+                $itemData['tax_rate'] = $data['tax_rate'] ?? 0;
+                
+                if (isset($itemData['id']) && in_array($itemData['id'], $existingItemIds)) {
+                    // Update existing item
+                    $item = SalesOrderItem::find($itemData['id']);
+                    $this->updateOrderItem($item, $itemData);
+                } else {
+                    // Create new item
+                    $item = $this->addOrderItem($order, $itemData);
+                }
+                
+                $lineSubtotal += $item->subtotal;
+                $subtotalAfterLineDiscount += $item->subtotal_after_discount;
+                $lineDiscountTotal += $item->discount;
+                $lineTaxAmountTotal += $item->tax_amount;
+            }
+
+            // Recalculate totals
+            $discountGlobal = $order->discount_global;
+            $order->subtotal = $lineSubtotal;
+            $order->discount_total = $lineDiscountTotal + $discountGlobal;
+            $order->tax_amount = $lineTaxAmountTotal;
+            $order->subtotal_after_discount = $subtotalAfterLineDiscount;
+            $order->total = $lineSubtotal - $order->discount_total + $lineTaxAmountTotal + ($order->shipping ?? 0);
+
+            $order->save();
+
+            DB::commit();
+
+            return $order->fresh(['items.product', 'items.productEntry', 'customer', 'salesChannel', 'warehouse']);
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Update an order item
+     * 
+     * @param SalesOrderItem $item
+     * @param array $data
+     * @return SalesOrderItem
+     */
+    protected function updateOrderItem(SalesOrderItem $item, array $data): SalesOrderItem
+    {
+        $item->product_id = $data['product_id'];
+        $item->product_entry_id = $data['product_entry_id'] ?? null;
+        $item->quantity = $data['quantity'];
+        $item->unit_price = $data['unit_price'];
+        $item->unit_cost = $data['unit_cost'] ?? 0;
+        $item->discount = $data['discount'] ?? 0;
+        $item->tax_rate = $data['tax_rate'] ?? 0;
+
+        // Calculate item totals
+        $item->subtotal = $item->quantity * $item->unit_price;
+        $item->discount_amount = $item->subtotal * ($item->discount / 100);
+        $item->subtotal_after_discount = $item->subtotal - $item->discount_amount;
+        $item->tax_amount = $item->subtotal_after_discount * ($item->tax_rate / 100);
+        $item->total = $item->subtotal_after_discount + $item->tax_amount;
+
+        $item->save();
+
+        return $item;
+    }
+
+    /**
      * Add item to sales order
      * 
      * @param SalesOrder $order

@@ -291,6 +291,7 @@
 import { ref, onMounted, reactive, computed } from 'vue';
 import api from '../axios';
 import { useRouter, useRoute } from 'vue-router';
+import swal from '../utils/swal';
 import { debounce } from 'lodash';
 import {
     Combobox,
@@ -461,7 +462,7 @@ const fetchEntryDetails = async (id) => {
         fetchProductDetails(entry.product_id);
     } catch (error) {
         console.error('Error fetching entry details:', error);
-        alert('Could not load entry details.');
+        swal.error('Could not load entry details.');
     } finally {
         loadingDetails.value = false;
     }
@@ -484,14 +485,14 @@ const submitEntry = async () => {
     try {
         if (isEdit.value) {
             await api.put(`/inventory/entries/${route.params.id}`, form);
-            alert('Product entry updated successfully!');
+            swal.success('Product entry updated successfully!');
         } else {
             await api.post('/inventory/entry', form);
-            alert('Product entry created successfully!');
+            swal.success('Product entry created successfully!');
         }
         router.push({ name: 'Inventory' });
     } catch (error) {
-        alert(error.response?.data?.message || 'Failed to submit entry.');
+        swal.error(error.response?.data?.message || 'Failed to submit entry.');
     } finally {
         submitting.value = false;
     }
