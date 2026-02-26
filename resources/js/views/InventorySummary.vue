@@ -104,10 +104,10 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 text-right font-semibold text-gray-900">
-                            {{ product.total_quantity }} <span class="text-[10px] text-gray-400 font-normal uppercase ml-0.5">{{ product.unit }}</span>
+                            {{ product.total_quantity || 0 }} <span class="text-[10px] text-gray-400 font-normal uppercase ml-0.5">{{ product.unit }}</span>
                         </td>
                         <td class="px-6 py-4 text-right text-emerald-600 font-medium">
-                            {{ product.total_available }}
+                            {{ product.total_available || 0 }}
                         </td>
                         <td class="px-6 py-4 text-right text-amber-600 font-medium">
                             {{ product.total_reserved || 0 }}

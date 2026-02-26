@@ -419,6 +419,8 @@ const fetchProductDetails = async (productId) => {
             let latestEntry = detailedProductData.value.product.latest_entry;
             form.unit_cost = latestEntry.unit_cost;
             form.unit_price = latestEntry.unit_price;
+            form.entry_date = latestEntry.entry_date  || '';
+            form.batch_number = latestEntry.batch_number || '';
 
             warehouses.value.filter(w => w.id === latestEntry.warehouse_id).forEach(w => {
                 selectedWarehouse.value = w;

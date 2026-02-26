@@ -167,6 +167,7 @@ const pagination = ref({
 });
 
 const formatNumber = (num) => {
+    if(!num) return '0';
     return Number(num).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 };
 

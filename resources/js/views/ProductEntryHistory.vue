@@ -72,10 +72,11 @@
                             <div class="text-gray-900 font-medium">{{ entry.product?.name }}</div>
                             <div class="text-xs text-gray-500">{{ entry.product?.sku }}</div>
                         </td>
-                        <td class="px-4 py-4 text-sm">
-                            <span v-if="entry.supplier" class="text-gray-700">{{ entry.supplier.name }}</span>
-                            <span v-else class="text-gray-400 italic">No supplier</span>
-                        </td>
+                        <td class="px-4 py-4 text-sm">  
+                            <div v-if="entry.supplier" class="text-gray-700">{{ entry.supplier.name }}</div>
+                            <div v-else class="text-gray-400 italic">No supplier</div>
+                            <div class="text-xs text-gray-500">{{ entry.batch_number }}</div>
+                         </td>
                         <td class="px-4 py-4 text-right">
                             <span class="font-semibold text-gray-900">{{ entry.quantity }}</span> 
                             <span class="text-[10px] text-gray-400 uppercase ml-1">{{ entry.product?.unit }}</span>
@@ -228,6 +229,7 @@ const formatDate = (dateStr) => {
         day: 'numeric'
     });
 };
+
 
 onMounted(() => {
     fetchData();
