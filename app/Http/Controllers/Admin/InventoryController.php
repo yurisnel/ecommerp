@@ -240,4 +240,19 @@ class InventoryController extends Controller
             'data' => $stats
         ]);
     }
+
+    /**
+     * Get low stock and out of stock alerts
+     */
+    public function getAlerts(Request $request): JsonResponse
+    {
+        $limit = $request->input('limit', 10);
+        $alerts = $this->inventoryService->getStockAlerts($limit);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stock alerts retrieved successfully',
+            'data' => $alerts
+        ]);
+    }
 }

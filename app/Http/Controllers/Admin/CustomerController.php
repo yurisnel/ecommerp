@@ -4,13 +4,32 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\BaseController;
 use App\Services\CustomerService;
+use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class CustomerController extends BaseController
 {
     public function __construct(CustomerService $service)
     {
         parent::__construct($service);
+    }
+
+    /**
+     * Get customer statistics
+     */
+    public function stats(): JsonResponse
+    {
+        $totalCustomers = Customer::count();
+        $activeCustomers = Customer::where('status', 'active')->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_customers' => $totalCustomers,
+                'active_customers' => $activeCustomers,
+            ]
+        ]);
     }
 
     /**

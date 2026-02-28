@@ -609,5 +609,71 @@ class InventoryService
 
         return $query->paginate($perPage);
     }
+
+    /**
+     * Get stock alerts (low stock and out of stock products)
+     * 
+     * @param int $limit
+     * @return array
+     */
+    public function getStockAlerts(int $limit = 10): array
+    {
+        // Get products with their current inventory
+        $products = Product::with(['inventory', 'category'])
+            ->get()
+            ->map(function ($product) {
+                $totalQuantity = $product->inventory->sum('available_quantity');
+                $product->total_quantity = $totalQuantity;
+                return $product;
+            });
+
+        // Out of stock (quantity = 0)
+        $outOfStock = $products
+            ->filter(fn($p) => $p->total_quantity <= 0)
+            ->take($limit)
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'type' => 'out_of_stock',
+                    'severity' => 'critical',
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'product_sku' => $product->sku,
+                    'category' => $product->category?->name,
+                    'current_quantity' => 0,
+                    'message' => 'Producto sin stock',
+                    'created_at' => now()->toISOString(),
+                ];
+            })
+            ->values();
+
+        // Low stock (quantity > 0 but <= min_stock)
+        $lowStock = $products
+            ->filter(fn($p) => $p->total_quantity > 0 && $p->total_quantity <= ($p->min_stock ?? 10))
+            ->take($limit)
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'type' => 'low_stock',
+                    'severity' => 'warning',
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'product_sku' => $product->sku,
+                    'category' => $product->category?->name,
+                    'current_quantity' => $product->total_quantity,
+                    'min_stock' => $product->min_stock ?? 10,
+                    'message' => 'Stock bajo: ' . $product->total_quantity . ' unidades',
+                    'created_at' => now()->toISOString(),
+                ];
+            })
+            ->values();
+
+        return [
+            'out_of_stock' => $outOfStock,
+            'low_stock' => $lowStock,
+            'total_critical' => $outOfStock->count(),
+            'total_warning' => $lowStock->count(),
+        ];
+    }
 }
 

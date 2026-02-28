@@ -72,6 +72,7 @@ Route::prefix('v1')->group(function () {
     // Inventory Operations
     Route::get('inventory', [InventoryController::class, 'index']);
     Route::get('inventory/stats', [InventoryController::class, 'getStats']);
+    Route::get('inventory/alerts', [InventoryController::class, 'getAlerts']);
     Route::get('inventory/entries', [InventoryController::class, 'getProductEntries']);
     Route::get('inventory/entries/{id}', [InventoryController::class, 'showEntry']);
     Route::get('inventory/movements', [InventoryController::class, 'getStockMovements']);
@@ -83,6 +84,7 @@ Route::prefix('v1')->group(function () {
     Route::get('inventory/product/{id}', [InventoryController::class, 'getProductStatus']);
 
     // Customers
+    Route::get('customers/stats', [CustomerController::class, 'stats']);
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('customer-groups', CustomerGroupController::class);
 
@@ -94,6 +96,7 @@ Route::prefix('v1')->group(function () {
     Route::post('addresses/{id}/default', [CustomerAddressController::class, 'setDefault']);
 
     // Sales & Orders
+    Route::get('orders/recent', [SalesOrderController::class, 'recent']);
     Route::get('orders/stats', [SalesOrderController::class, 'stats']);
     Route::post('orders/payment', [SalesOrderController::class, 'processPayment']);
     Route::post('orders/{id}/update-status', [SalesOrderController::class, 'updateStatus']);

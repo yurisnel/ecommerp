@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\BaseController;
 use App\Services\SalesOrderService;
 use App\Services\SalesService;
+use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -184,5 +185,15 @@ class SalesOrderController extends BaseController
     {
         $this->salesService->deleteOrderItem($orderId, $itemId);
         return $this->successResponse(null, 'Order item deleted successfully');
+    }
+
+    /**
+     * Get recent orders for dashboard
+     */
+    public function recent(Request $request): JsonResponse
+    {
+        $limit = $request->input('limit', 10);
+        $result = $this->salesService->recent($limit);
+        return $this->successResponse($result, 'Recent orders retrieved successfully');
     }
 }

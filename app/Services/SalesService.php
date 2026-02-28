@@ -638,4 +638,16 @@ class SalesService
             'valid_transitions' => $validStatuses
         ];
     }
+
+     public function recent(int $limit = 10): array
+    {
+        $relations = ['customer', 'salesChannel', 'warehouse', 'orderStatus'];
+        
+        $orders = SalesOrder::with($relations)
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+
+        return $orders;
+    }
 }
