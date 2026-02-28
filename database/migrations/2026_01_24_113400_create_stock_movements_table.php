@@ -19,6 +19,7 @@ return new class extends Migration
             $table->enum('type', ['in', 'out', 'transfer', 'adjustment']); // in=entrada, out=salida, transfer=transferencia, adjustment=ajuste
             $table->decimal('quantity', 10, 2);
             $table->decimal('unit_price', 10, 2)->nullable(); // Price at movement time
+            $table->decimal('unit_cost', 10, 2)->nullable(); // Cost at movement time
             $table->string('reference_type', 50)->nullable(); // sale, purchase, transfer, etc.
             $table->unsignedBigInteger('reference_id')->nullable(); // ID of related record (sale_order_id, etc)
             $table->foreignId('from_warehouse_id')->nullable()->constrained('warehouses')->onDelete('set null'); // For transfers

@@ -17,8 +17,11 @@ class ProductEntry extends Model
         'supplier_id',
         'warehouse_id',
         'quantity',
+        'base_cost',
+        'additional_costs_value',
+        'additional_costs_percent',
         'unit_cost',
-        'unit_price',        
+        'unit_price',
         'entry_date',
         'expiration_date',
         'batch_number',
@@ -28,6 +31,9 @@ class ProductEntry extends Model
 
     protected $casts = [
         'quantity' => 'decimal:2',
+        'base_cost' => 'decimal:2',
+        'additional_costs_value' => 'decimal:2',
+        'additional_costs_percent' => 'decimal:2',
         'unit_cost' => 'decimal:2',
         'unit_price' => 'decimal:2',
         'entry_date' => 'date',
@@ -95,5 +101,43 @@ class ProductEntry extends Model
         }
         
         return (($this->unit_price - $this->unit_cost) / $this->unit_cost) * 100;
+    }
+
+    /**
+     * Get the calculated unit cost (from stored value or calculate)
+     */
+    public function getUnitCostAttribute(): float
+    {
+        // If unit_cost is stored, return it
+        if (isset($this->attributes['unit_cost']) && $this->attributes['unit_cost'] !== null) {
+            return (float) $this->attributes['unit_cost'];
+        }
+        
+        // Otherwise calculate from base_cost + additional costs
+        $baseCost = (float) ($this->attributes['base_cost'] ?? 0);
+        $additionalValue = (float) ($this->attributes['additional_costs_value'] ?? 0);
+        $additionalPercent = (float) ($this->attributes['additional_costs_percent'] ?? 0);
+        $additionalFromPercent = $baseCost * ($additionalPercent / 100);
+        return $baseCost + $additionalValue + $additionalFromPercent;
+    }
+
+    /**
+     * Get total additional costs (value + percent)
+     */
+    public function getTotalAdditionalCostsAttribute(): float
+    {
+        $baseCost = (float) ($this->attributes['base_cost'] ?? 0);
+        $additionalValue = (float) ($this->attributes['additional_costs_value'] ?? 0);
+        $additionalPercent = (float) ($this->attributes['additional_costs_percent'] ?? 0);
+        $additionalFromPercent = $baseCost * ($additionalPercent / 100);
+        return $additionalValue + $additionalFromPercent;
+    }
+
+    /**
+     * Get total cost for this entry (unit_cost * quantity)
+     */
+    public function getTotalCostAttribute(): float
+    {
+        return $this->unit_cost * $this->quantity;
     }
 }

@@ -43,7 +43,9 @@ class InventoryController extends Controller
             'supplier_id' => 'nullable|exists:suppliers,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'quantity' => 'required|numeric|min:0.01',
-            'unit_cost' => 'required|numeric|min:0',
+            'base_cost' => 'required|numeric|min:0',
+            'additional_costs_value' => 'nullable|numeric|min:0',
+            'additional_costs_percent' => 'nullable|numeric|min:0|max:100',
             'unit_price' => 'required|numeric|min:0',
             'entry_date' => 'required|date',
             'expiration_date' => 'nullable|date',
@@ -51,6 +53,10 @@ class InventoryController extends Controller
             'notes' => 'nullable|string',
             'created_by' => 'nullable|exists:users,id',
         ]);
+
+        // Establecer valores por defecto para costos adicionales
+        $validated['additional_costs_value'] = $validated['additional_costs_value'] ?? 0;
+        $validated['additional_costs_percent'] = $validated['additional_costs_percent'] ?? 0;
 
         $entry = $this->inventoryService->createProductEntry($validated);
 
@@ -92,13 +98,19 @@ class InventoryController extends Controller
             'supplier_id' => 'nullable|exists:suppliers,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'quantity' => 'required|numeric|min:0.01',
-            'unit_cost' => 'required|numeric|min:0',
+            'base_cost' => 'required|numeric|min:0',
+            'additional_costs_value' => 'nullable|numeric|min:0',
+            'additional_costs_percent' => 'nullable|numeric|min:0|max:100',
             'unit_price' => 'required|numeric|min:0',
             'entry_date' => 'required|date',
             'expiration_date' => 'nullable|date',
             'batch_number' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
         ]);
+
+        // Establecer valores por defecto para costos adicionales
+        $validated['additional_costs_value'] = $validated['additional_costs_value'] ?? 0;
+        $validated['additional_costs_percent'] = $validated['additional_costs_percent'] ?? 0;
 
         $entry = $this->inventoryService->updateProductEntry($id, $validated);
 

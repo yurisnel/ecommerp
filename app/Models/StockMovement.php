@@ -16,6 +16,7 @@ class StockMovement extends Model
         'product_entry_id',
         'type',
         'quantity',
+        'unit_cost',
         'unit_price',
         'reference_type',
         'reference_id',
@@ -28,6 +29,7 @@ class StockMovement extends Model
 
     protected $casts = [
         'quantity' => 'decimal:2',
+        'unit_cost' => 'decimal:2',
         'unit_price' => 'decimal:2',
         'movement_date' => 'datetime',
         'created_at' => 'datetime',

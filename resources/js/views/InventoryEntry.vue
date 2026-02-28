@@ -163,7 +163,38 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 p-6 rounded-2xl border border-gray-100">
-                            <!-- Quantity -->
+                           
+                            <!-- Cost -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Base Unit Cost *</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3 text-gray-400">$</span>
+                                    <input v-model.number="form.base_cost" type="number" min="0" step="1" class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
+                                </div>
+                            </div>
+
+                            <!-- Additional Costs Value -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Additional Costs (Value)</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3 text-gray-400">$</span>
+                                    <input v-model.number="form.additional_costs_value" type="number" min="0" step="1" class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
+                                </div>
+                            </div>
+
+                            <!-- Additional Costs Percent -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Additional Costs (%)</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3 text-gray-400">%</span>
+                                    <input v-model.number="form.additional_costs_percent" type="number" min="0" max="100" step="1" class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
+                                </div>
+                            </div>
+
+                            
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Quantity -->
                             <div>
                                 <label class="block text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Quantity * 
                                     <span class="text-[10px] font-bold text-gray-400 uppercase">{{ selectedProduct?.unit || 'Pcs' }}</span>
@@ -173,16 +204,6 @@
                                     <input v-model.number="form.quantity" type="number" min="1" :step="stepQuantity" class="w-full px-4 py-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
                                 </div>
                             </div>
-
-                            <!-- Cost -->
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Unit Cost (Inc. Tax) *</label>
-                                <div class="relative">
-                                    <span class="absolute left-4 top-3 text-gray-400">$</span>
-                                    <input v-model.number="form.unit_cost" type="number" min="0" step="0.1" class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900">
-                                </div>
-                            </div>
-
                             <!-- Selling Price -->
                             <div>
                                 <label class="block text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Selling Price *</label>
@@ -192,7 +213,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <!-- Notes -->
                         <div>
                             <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Public/Internal Notes</label>
@@ -228,7 +248,7 @@
                                     <p class="text-lg font-bold">{{ detailedProductData.total_quantity || 0 }}</p>
                                 </div>
                                 <div class="text-center flex-1">
-                                    <p class="text-[10px] text-indigo-300 uppercase font-bold">Last Costo</p>
+                                    <p class="text-[10px] text-indigo-300 uppercase font-bold">Last Unit Cost</p>
                                     <p class="text-lg font-bold">${{ Number(detailedProductData.product.latest_entry?.unit_cost || 0).toFixed(2) }}</p>
                                 </div>
                                  <div class="text-center flex-1">
@@ -245,6 +265,11 @@
                     <h3 class="font-bold text-gray-900 text-sm border-b pb-4">Financial Insight</h3>
                     
                     <div class="space-y-4">
+                        <div class="flex justify-between items-end">
+                            <span class="text-gray-500 text-xs font-medium">Unit Cost Final</span>
+                            <span class="text-xl font-black text-indigo-600">${{ calculatedUnitCost.toFixed(2) }}</span>
+                        </div>
+
                         <div class="flex justify-between items-end">
                             <span class="text-gray-500 text-xs font-medium">Profit Per Unit</span>
                             <span class="text-xl font-black" :class="profit > 0 ? 'text-emerald-600' : 'text-red-600'">
@@ -264,12 +289,12 @@
   
                         <div class="pt-4 border-t border-gray-100 flex justify-between items-center font-bold">
                             <span class="text-gray-900 text-xs">Total Profit Estimated</span>
-                            <span class="text-indigo-600">${{ (form.quantity * (form.unit_price - form.unit_cost )).toFixed(2) }}</span>
+                            <span class="text-indigo-600">${{ (form.quantity * (form.unit_price - calculatedUnitCost )).toFixed(2) }}</span>
                         </div>
 
                         <div class="pt-4 border-t border-gray-100 flex justify-between items-center font-bold">
                             <span class="text-gray-900 text-xs">Total Investment</span>
-                            <span class="text-indigo-600">${{ (form.quantity * form.unit_cost).toFixed(2) }}</span>
+                            <span class="text-indigo-600">${{ (form.quantity * calculatedUnitCost).toFixed(2) }}</span>
                         </div>
 
                     </div>
@@ -336,20 +361,31 @@ const form = reactive({
     warehouse_id: '',
     supplier_id: '',
     quantity: 0,
-    unit_cost: 0,
+    base_cost: 0,
+    additional_costs_value: 0,
+    additional_costs_percent: 0,
     unit_price: 0,
     entry_date: new Date().toISOString().slice(0, 16),
     batch_number: '',
     notes: ''
 });
 
+// Calculate unit cost from base_cost + additional costs
+const calculatedUnitCost = computed(() => {
+    const baseCost = Number(form.base_cost) || 0;
+    const additionalValue = Number(form.additional_costs_value) || 0;
+    const additionalPercent = Number(form.additional_costs_percent) || 0;
+    const additionalFromPercent = baseCost * (additionalPercent / 100);
+    return baseCost + additionalValue + additionalFromPercent;
+});
+
 const profit = computed(() => {
-    if (!form.unit_cost || !form.unit_price) return 0;
-    return form.unit_price - form.unit_cost;
+    if (!calculatedUnitCost.value || !form.unit_price) return 0;
+    return form.unit_price - calculatedUnitCost.value;
 });
 
 const margin = computed(() => {
-    if (!form.unit_price || !form.unit_cost) return 0;
+    if (!form.unit_price || !calculatedUnitCost.value) return 0;
     return (profit.value / form.unit_price) * 100;
 });
 
@@ -361,7 +397,7 @@ const marginClass = computed(() => {
 });
 
 const isValid = computed(() => {
-    return form.product_id && form.warehouse_id && form.quantity > 0 && form.unit_cost > 0;
+    return form.product_id && form.warehouse_id && form.quantity > 0 && form.base_cost >= 0;
 });
 
 const filteredWarehouses = computed(() => {
@@ -417,7 +453,9 @@ const fetchProductDetails = async (productId) => {
         // Update form with latest suggestions
         if (detailedProductData.value.product.latest_entry) {
             let latestEntry = detailedProductData.value.product.latest_entry;
-            form.unit_cost = latestEntry.unit_cost;
+            form.base_cost = latestEntry.base_cost || latestEntry.unit_cost || 0;
+            form.additional_costs_value = latestEntry.additional_costs_value || 0;
+            form.additional_costs_percent = latestEntry.additional_costs_percent || 0;
             form.unit_price = latestEntry.unit_price;
             form.entry_date = latestEntry.entry_date  || '';
             form.batch_number = latestEntry.batch_number || '';
@@ -450,7 +488,9 @@ const fetchEntryDetails = async (id) => {
         form.warehouse_id = entry.warehouse_id;
         form.supplier_id = entry.supplier_id;
         form.quantity = entry.quantity;
-        form.unit_cost = entry.unit_cost;
+        form.base_cost = entry.base_cost || entry.unit_cost || 0;
+        form.additional_costs_value = entry.additional_costs_value || 0;
+        form.additional_costs_percent = entry.additional_costs_percent || 0;
         form.unit_price = entry.unit_price;
         form.entry_date = entry.entry_date;
         form.batch_number = entry.batch_number || '';

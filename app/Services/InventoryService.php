@@ -27,18 +27,25 @@ class InventoryService
         DB::beginTransaction();
 
         try {
-           
+            // Calculate and store unit_cost before saving
+            $baseCost = $data['base_cost'] ?? 0;
+            $additionalValue = $data['additional_costs_value'] ?? 0;
+            $additionalPercent = $data['additional_costs_percent'] ?? 0;
+            $additionalFromPercent = $baseCost * ($additionalPercent / 100);
+            $data['unit_cost'] = $baseCost + $additionalValue + $additionalFromPercent;
+            
             // Create product entry
             $entry = ProductEntry::create($data);
 
-            // Create stock movement (IN)
+            // Create stock movement (IN) - use stored unit cost
             $this->createStockMovement([
                 'product_id' => $data['product_id'],
                 'warehouse_id' => $data['warehouse_id'],
                 'product_entry_id' => $entry->id,
                 'type' => 'in',
                 'quantity' => $data['quantity'],
-                'unit_price' => $data['unit_cost'],
+                'unit_cost' => $data['unit_cost'],
+                'unit_price' => $entry->unit_price,
                 'reference_type' => 'product_entry',
                 'reference_id' => $entry->id,
                 'notes' => '',
@@ -87,6 +94,13 @@ class InventoryService
         DB::beginTransaction();
 
         try {
+            // Calculate and store unit_cost before updating
+            $baseCost = $data['base_cost'] ?? 0;
+            $additionalValue = $data['additional_costs_value'] ?? 0;
+            $additionalPercent = $data['additional_costs_percent'] ?? 0;
+            $additionalFromPercent = $baseCost * ($additionalPercent / 100);
+            $data['unit_cost'] = $baseCost + $additionalValue + $additionalFromPercent;
+            
             $entry = ProductEntry::findOrFail($id);
             $oldQuantity = $entry->quantity;
             $oldWarehouseId = $entry->warehouse_id;
@@ -112,7 +126,8 @@ class InventoryService
                     'product_id' => $entry->product_id,
                     'warehouse_id' => $entry->warehouse_id,
                     'quantity' => $entry->quantity,
-                    'unit_price' => $entry->unit_cost,
+                    'unit_cost' => $entry->unit_cost, // Stored calculated value
+                    'unit_price' => $entry->unit_price,
                     'notes' => $entry->notes ?? 'Updated Product entry #' . $entry->id,
                     'movement_date' => $entry->entry_date,
                 ]);
@@ -473,6 +488,7 @@ class InventoryService
         }
 
         $totalQuantity = $query->sum(DB::raw('COALESCE(quantity, 0)'));
+        // Use stored unit_cost for better performance
         $totalInvested = $query->sum(DB::raw('COALESCE(quantity, 0) * COALESCE(unit_cost, 0)'));
         $totalSellingPrice = $query->sum(DB::raw('COALESCE(quantity, 0) * COALESCE(unit_price, 0)'));
         $totalProfit = $totalSellingPrice - $totalInvested;
