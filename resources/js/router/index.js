@@ -5,7 +5,6 @@ import AdminLayout from '../layouts/AdminLayout.vue';
 
 // Views
 import Dashboard from '../views/Dashboard.vue';
-import ProductList from '../views/ProductList.vue';
 import CategoryList from '../views/CategoryList.vue';
 import CategoryForm from '../views/CategoryForm.vue';
 import OrderList from '../views/OrderList.vue';
@@ -27,8 +26,7 @@ const routes = [
         path: '/admin',
         component: AdminLayout,
         children: [
-            { path: '', name: 'Dashboard', component: Dashboard },
-            { path: 'products', name: 'Products', component: ProductList },
+            { path: '', name: 'Dashboard', component: Dashboard },      
             { path: 'products/create', name: 'ProductCreate', component: ProductForm },
             { path: 'products/:id/edit', name: 'ProductEdit', component: ProductForm },
             { path: 'inventory', name: 'Inventory', component: InventoryView },

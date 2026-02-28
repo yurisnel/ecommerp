@@ -497,7 +497,7 @@ class InventoryService
      */
     public function getProductEntries(int $perPage = 15, array $filters = [])
     {
-        $query = ProductEntry::with(['product', 'supplier', 'warehouse'])->orderBy('id', 'desc');
+        $query = ProductEntry::with(['product', 'product.defaultImage', 'supplier', 'warehouse'])->orderBy('id', 'desc');
 
         if (isset($filters['search']) && $filters['search']) {
             $search = $filters['search'];
@@ -553,7 +553,7 @@ class InventoryService
      */
     public function getStockMovements(int $perPage = 15, array $filters = [])
     {
-        $query = StockMovement::with(['product', 'warehouse', 'fromWarehouse', 'toWarehouse'])->orderBy('id', 'desc');
+        $query = StockMovement::with(['product','product.defaultImage', 'warehouse', 'fromWarehouse', 'toWarehouse'])->orderBy('id', 'desc');
 
         if (isset($filters['search']) && $filters['search']) {
             $search = $filters['search'];

@@ -36,7 +36,7 @@
             <table class="w-full text-left">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">Entry</th>
+                        <th class="text-center py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-15">Entry</th>
                         <th v-if="!productId" class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-24">Qty</th>
@@ -65,12 +65,20 @@
                     </tr>
                     
                     <tr v-for="entry in entries" :key="entry.id" class="hover:bg-gray-50 transition-colors">
-                        <td class="px-4 py-4 whitespace-nowrap">
+                        <td class="text-center py-4 whitespace-nowrap">
                             <div class="font-medium text-indigo-600">#{{ entry.id }}</div>
                         </td>  
                         <td v-if="!productId" class="px-4 py-4 text-sm">
-                            <div class="text-gray-900 font-medium">{{ entry.product?.name }}</div>
-                            <div class="text-xs text-gray-500">{{ entry.product?.sku }}</div>
+                            <div class="flex items-center gap-3">
+                                <img 
+                                    :src="entry.product?.default_image?.url || '/placeholder-product.png'" 
+                                    class="h-10 w-10 rounded-lg object-cover border border-gray-100 bg-gray-50"
+                                >
+                                <div>
+                                    <div class="font-medium text-gray-900">{{ entry.product?.name }}</div>
+                                    <div class="text-xs text-gray-500">{{ entry.product?.sku }}</div>
+                                </div>
+                            </div>
                         </td>
                         <td class="px-4 py-4 text-sm">  
                             <div v-if="entry.supplier" class="text-gray-700">{{ entry.supplier.name }}</div>

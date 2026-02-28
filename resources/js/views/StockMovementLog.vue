@@ -40,9 +40,9 @@
             <table class="w-full text-left">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">#</th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Type</th>
+                        <th class="text-center py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10">#</th>
                         <th v-if="!productId" class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Type</th>                        
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Warehouse</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-28">Qty</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Date</th>
@@ -51,8 +51,8 @@
                 <tbody class="divide-y divide-gray-200">
                     <tr v-if="loading" v-for="i in 5" :key="i" class="animate-pulse">
                         <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-12"></div></td>
-                        <td class="px-4 py-4"><div class="h-6 bg-gray-200 rounded-full w-20"></div></td>
                         <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
+                        <td class="px-4 py-4"><div class="h-6 bg-gray-200 rounded-full w-20"></div></td>                        
                         <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-28"></div></td>
                         <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
                         <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
@@ -65,9 +65,21 @@
                     </tr>
                     
                     <tr v-for="movement in movements" :key="movement.id" class="hover:bg-gray-50 transition-colors">
-                        <td class="px-4 py-4 whitespace-nowrap">
+                        <td class="text-center py-4 whitespace-nowrap">
                             <div class="font-medium text-gray-900">#{{ movement.id }}</div>
                         </td>                       
+                         <td v-if="!productId" class="px-4 py-4">
+                            <div class="flex items-center gap-3">    
+                                <img 
+                                    :src="movement.product?.default_image?.url || '/placeholder-product.png'" 
+                                    class="h-10 w-10 rounded-lg object-cover border border-gray-100 bg-gray-50"
+                                >
+                                <div>
+                                    <div class="font-medium text-gray-900">{{ movement.product?.name }}</div>
+                                    <div class="text-xs text-gray-500">{{ movement.product?.sku }}</div>
+                                </div>
+                            </div>
+                        </td>
                         <td class="px-4 py-4 whitespace-nowrap">
                             <span 
                                 class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border"
@@ -76,10 +88,7 @@
                                 {{ movement.type }}
                             </span>
                         </td>
-                        <td v-if="!productId" class="px-4 py-4">
-                            <div class="text-sm font-medium text-gray-900">{{ movement.product?.name }}</div>
-                            <div class="text-[10px] text-gray-500">{{ movement.product?.sku }}</div>
-                        </td>
+                       
                         <td class="px-4 py-4">
                             <div v-if="movement.type === 'transfer'" class="flex flex-col gap-0.5 text-[11px]">
                                 <span class="text-red-500 font-medium">From: {{ movement.from_warehouse?.name }}</span>

@@ -88,14 +88,6 @@ Si no existe, el sistema saltará el watermark sin errores.
 <!-- Click en estrella para establecer default -->
 ```
 
-### En ProductList.vue
-
-```vue
-<!-- Ver thumbnail de imagen default -->
-<!-- Badge muestra cantidad total -->
-<!-- Click en imagen para ver galería completa -->
-```
-
 ## 🔧 Configuración
 
 ### En ProductForm.vue
