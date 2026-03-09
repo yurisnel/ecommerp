@@ -14,6 +14,7 @@ class ProductEntry extends Model
 
     protected $fillable = [
         'product_id',
+        'product_variant_id',
         'supplier_id',
         'warehouse_id',
         'quantity',
@@ -36,7 +37,7 @@ class ProductEntry extends Model
         'additional_costs_percent' => 'decimal:2',
         'unit_cost' => 'decimal:2',
         'unit_price' => 'decimal:2',
-        'entry_date' => 'date',
+        'entry_date' => 'datetime',
         'expiration_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -49,6 +50,14 @@ class ProductEntry extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the variant for this entry
+     */
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
     /**
@@ -99,7 +108,7 @@ class ProductEntry extends Model
         if ($this->unit_cost == 0) {
             return 0;
         }
-        
+
         return (($this->unit_price - $this->unit_cost) / $this->unit_cost) * 100;
     }
 
@@ -112,7 +121,7 @@ class ProductEntry extends Model
         if (isset($this->attributes['unit_cost']) && $this->attributes['unit_cost'] !== null) {
             return (float) $this->attributes['unit_cost'];
         }
-        
+
         // Otherwise calculate from base_cost + additional costs
         $baseCost = (float) ($this->attributes['base_cost'] ?? 0);
         $additionalValue = (float) ($this->attributes['additional_costs_value'] ?? 0);

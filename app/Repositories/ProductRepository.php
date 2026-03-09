@@ -16,7 +16,7 @@ class ProductRepository extends BaseRepository
      */
     public function searchProducts(array $filters, int $perPage = 15)
     {
-        $query = $this->model->with(['categories', 'defaultImage']);
+        $query = $this->model->with(['categories', 'defaultImage', 'variants']);
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {

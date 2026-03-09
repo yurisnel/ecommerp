@@ -18,7 +18,7 @@ class ProductController extends BaseController
      */
     public function show(int $id): \Illuminate\Http\JsonResponse
     {
-        $product = $this->service->getById($id, ['categories', 'images']);
+        $product = $this->service->getById($id, ['categories', 'images', 'variants']);
 
         if (!$product) {
             return response()->json([

@@ -16,7 +16,12 @@ return new class extends Migration
             $table->string('order_number', 50)->unique();
             $table->foreignId('customer_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('sales_channel_id')->constrained()->onDelete('cascade');
-            $table->foreignId('warehouse_id')->constrained()->onDelete('cascade');           
+            $table->foreignId('warehouse_id')->constrained()->onDelete('cascade');  
+            $table->foreignId('shipping_address_id')->nullable()->constrained('customer_addresses')->onDelete('set null');
+            $table->foreignId('billing_address_id')->nullable()->constrained('customer_addresses')->onDelete('set null');
+            $table->foreignId('shipping_method_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('discount_rule_id')->nullable()->constrained()->onDelete('set null');         
+            $table->foreignId('order_status_id')->constrained('order_statuses')->onDelete('restrict');
             $table->decimal('tax_rate', 10, 2)->default(0);
             $table->decimal('tax_amount', 10, 2)->default(0);
             $table->decimal('discount_global', 10, 2)->default(0);

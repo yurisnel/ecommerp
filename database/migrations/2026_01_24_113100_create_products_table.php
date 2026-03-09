@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('slug', 200)->unique();
             $table->text('description')->nullable();
             $table->string('sku', 100)->unique();
-            $table->string('barcode', 13)->unique();
+            $table->string('barcode')->nullable()->unique();
             $table->enum('unit', ['pcs', 'kg', 'liter', 'meter', 'box'])->default('pcs');
             $table->decimal('min_stock', 10, 2)->default(0);
             $table->decimal('max_stock', 10, 2)->nullable();

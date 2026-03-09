@@ -62,9 +62,9 @@ class ProductFactory extends Factory
             if ($warehouses->isNotEmpty() && $suppliers->isNotEmpty()) {
                 try {
                     $qty = rand(10, 20);
-                    $cost = rand(5, 10);
+                    $base_cost = rand(5, 10);
                     $inc = $this->faker->randomFloat(1, 1.5, 2);
-                    $price = $cost * $inc;
+                    $price = $base_cost * $inc;
 
                     $inventoryService->createProductEntry([
                         'product_id' => $product->id,
@@ -72,7 +72,8 @@ class ProductFactory extends Factory
                         'warehouse_id' => 1,
                         'supplier_id' => $suppliers->random()->id,
                         'quantity' =>  $qty,
-                        'unit_cost' => $cost,
+                        //'unit_cost' => $base_cost,
+                        'base_cost' => $base_cost,
                         'unit_price' => $price,
                         'entry_date' => now(),
                         'batch_number' => 'BATCH-' . strtoupper(\Illuminate\Support\Str::random(8)),

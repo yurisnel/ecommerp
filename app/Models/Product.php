@@ -102,4 +102,30 @@ class Product extends Model
     {
         return $this->inventory()->sum('available_quantity');
     }
+
+    /**
+     * Get the variants for this product
+     */
+    public function variants(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    /**
+     * Get the attributes for this product
+     */
+    public function productAttributes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProductAttribute::class);
+    }
+
+    /**
+     * Get the attributes assigned to this product
+     */
+    public function attributes(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Attribute::class, 'product_attributes')
+            ->withPivot(['is_variant_attribute', 'is_filterable', 'is_required', 'sort_order'])
+            ->withTimestamps();
+    }
 }

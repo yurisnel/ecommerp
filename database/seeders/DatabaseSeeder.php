@@ -23,14 +23,15 @@ class DatabaseSeeder extends Seeder
             CustomerGroupSeeder::class,
             CategorySeeder::class,
             PaymentMethodSeeder::class,
-            ShippingMethodSeeder::class,          
+            ShippingMethodSeeder::class,
             SupplierSeeder::class,
             OrderStatusSeeder::class,
+            AttributeSeeder::class,
         ]);
 
         // Dynamic Data
         \App\Models\Warehouse::factory(3)->create();
-        
+
         \App\Models\Product::factory(50)->create();
         // Customers
         // Customers with Addresses

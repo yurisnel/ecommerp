@@ -40,6 +40,7 @@ class InventoryController extends Controller
     {
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
+            'product_variant_id' => 'nullable|exists:product_variants,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'quantity' => 'required|numeric|min:0.01',
@@ -95,6 +96,7 @@ class InventoryController extends Controller
     {
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
+            'product_variant_id' => 'nullable|exists:product_variants,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'quantity' => 'required|numeric|min:0.01',
@@ -141,6 +143,7 @@ class InventoryController extends Controller
     {
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
+            'product_variant_id' => 'nullable|exists:product_variants,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'quantity' => 'required|numeric', // Can be negative
             'notes' => 'nullable|string',
@@ -163,6 +166,7 @@ class InventoryController extends Controller
     {
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
+            'product_variant_id' => 'nullable|exists:product_variants,id',
             'from_warehouse_id' => 'required|exists:warehouses,id',
             'to_warehouse_id' => 'required|exists:warehouses,id|different:from_warehouse_id',
             'quantity' => 'required|numeric|min:0.01',
@@ -198,7 +202,7 @@ class InventoryController extends Controller
     public function getProductEntries(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', 15);
-        $filters = $request->only(['search', 'product_id', 'warehouse_id', 'supplier_id', 'category_id', 'date_start', 'date_end']);
+        $filters = $request->only(['search', 'product_id', 'product_variant_id', 'warehouse_id', 'supplier_id', 'category_id', 'date_start', 'date_end']);
 
         $entries = $this->inventoryService->getProductEntries($perPage, $filters);
 
@@ -215,7 +219,7 @@ class InventoryController extends Controller
     public function getStockMovements(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', 15);
-        $filters = $request->only(['search', 'type', 'product_id', 'warehouse_id', 'category_id', 'supplier_id']);
+        $filters = $request->only(['search', 'type', 'product_id', 'product_variant_id', 'warehouse_id', 'category_id', 'supplier_id']);
 
         $movements = $this->inventoryService->getStockMovements($perPage, $filters);
 

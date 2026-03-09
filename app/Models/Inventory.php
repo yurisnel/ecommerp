@@ -12,6 +12,7 @@ class Inventory extends Model
 
     protected $fillable = [
         'product_id',
+        'product_variant_id',
         'warehouse_id',
         'quantity',
         'reserved_quantity',
@@ -40,6 +41,14 @@ class Inventory extends Model
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    /**
+     * Get the variant for this inventory record (if any)
+     */
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
     /**

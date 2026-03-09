@@ -20,13 +20,16 @@ import CustomerForm from '../views/CustomerForm.vue';
 import OrderForm from '../views/OrderForm.vue';
 import OrderStatusList from '../views/OrderStatusList.vue';
 import OrderStatusForm from '../views/OrderStatusForm.vue';
+import AttributeList from '../views/AttributeList.vue';
+import AttributeForm from '../views/AttributeForm.vue';
+
 
 const routes = [
     {
         path: '/admin',
         component: AdminLayout,
         children: [
-            { path: '', name: 'Dashboard', component: Dashboard },      
+            { path: '', name: 'Dashboard', component: Dashboard },
             { path: 'products/create', name: 'ProductCreate', component: ProductForm },
             { path: 'products/:id/edit', name: 'ProductEdit', component: ProductForm },
             { path: 'inventory', name: 'Inventory', component: InventoryView },
@@ -50,6 +53,11 @@ const routes = [
             { path: 'customers', name: 'Customers', component: CustomerList },
             { path: 'customers/create', name: 'CustomerCreate', component: CustomerForm },
             { path: 'customers/:id/edit', name: 'CustomerEdit', component: CustomerForm },
+            // Attributes
+            { path: 'attributes', name: 'AttributeList', component: AttributeList },
+            { path: 'attributes/create', name: 'AttributeCreate', component: AttributeForm },
+            { path: 'attributes/:id/edit', name: 'AttributeEdit', component: AttributeForm },
+
             // Fallback for not implemented yet
             { path: ':pathMatch(.*)*', component: { template: '<div class="p-8 text-center text-gray-500">Construction in progress 🚧</div>' } }
         ]

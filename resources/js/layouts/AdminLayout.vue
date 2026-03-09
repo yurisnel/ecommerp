@@ -22,6 +22,11 @@
                         </router-link>
                     </li>
                     <li>
+                        <router-link to="/admin/attributes" class="flex items-center px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white rounded-md group transition-colors">
+                            <Icon icon="mdi:format-list-bulleted" class="mr-3 h-5 w-5" /> Attributes
+                        </router-link>
+                    </li>
+                    <li>
                         <router-link to="/admin/categories" class="flex items-center px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white rounded-md group transition-colors">
                             <Icon icon="mdi:tag-multiple" class="mr-3 h-5 w-5" /> Categories
                         </router-link>

@@ -41,7 +41,7 @@
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
                         <th class="text-center py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10">#</th>
-                        <th v-if="!productId" class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Type</th>                        
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Warehouse</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-28">Qty</th>
@@ -68,15 +68,20 @@
                         <td class="text-center py-4 whitespace-nowrap">
                             <div class="font-medium text-gray-900">#{{ movement.id }}</div>
                         </td>                       
-                         <td v-if="!productId" class="px-4 py-4">
+                         <td class="px-4 py-4">
                             <div class="flex items-center gap-3">    
                                 <img 
                                     :src="movement.product?.default_image?.url || '/placeholder-product.png'" 
                                     class="h-10 w-10 rounded-lg object-cover border border-gray-100 bg-gray-50"
                                 >
+                              
                                 <div>
                                     <div class="font-medium text-gray-900">{{ movement.product?.name }}</div>
-                                    <div class="text-xs text-gray-500">{{ movement.product?.sku }}</div>
+                                    <div v-if="movement.variant" class="text-xs font-semibold text-indigo-600">
+                                        {{ movement.variant.name }}
+                                        <span class="text-gray-400 font-normal">({{ movement.variant.sku }})</span>
+                                    </div>
+                                    <div v-else class="text-xs text-gray-500">{{ movement.product?.sku }}</div>
                                 </div>
                             </div>
                         </td>

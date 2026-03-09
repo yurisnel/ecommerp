@@ -22,6 +22,8 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\UploadController;
 use App\Http\Controllers\Admin\SalesChannelController;
 use App\Http\Controllers\Admin\OrderStatusController;
+use App\Http\Controllers\Admin\AttributeController;
+use App\Http\Controllers\Admin\ProductVariantController;
 
 /*
 |--------------------------------------------------------------------------
@@ -126,4 +128,25 @@ Route::prefix('v1')->group(function () {
     // Employees
     Route::apiResource('employees', EmployeeController::class);
     Route::apiResource('departments', DepartmentController::class);
+
+    // Attributes & Variants
+    Route::get('attributes/all', [AttributeController::class, 'all']);
+    Route::get('attributes/filterable', [AttributeController::class, 'filterable']);
+    Route::apiResource('attributes', AttributeController::class);
+    Route::get('attributes/{attributeId}/values', [AttributeController::class, 'values']);
+    Route::post('attributes/{attributeId}/values', [AttributeController::class, 'storeValue']);
+    Route::put('attributes/values/{id}', [AttributeController::class, 'updateValue']);
+    Route::delete('attributes/values/{id}', [AttributeController::class, 'destroyValue']);
+
+    // Product Variants
+    Route::get('products/{productId}/variants', [ProductVariantController::class, 'byProduct']);
+    Route::post('variants/generate', [ProductVariantController::class, 'generate']);
+    Route::apiResource('variants', ProductVariantController::class);
+    Route::get('variants/{variantId}/stocks', [ProductVariantController::class, 'stocks']);
+    Route::get('variants/{variantId}/inventory', [ProductVariantController::class, 'inventoryStatus']);
+    Route::get('variants/{variantId}/movements', [ProductVariantController::class, 'stockMovements']);
+    Route::post('variants/stock/add', [ProductVariantController::class, 'addStock']);
+    Route::post('variants/stock/remove', [ProductVariantController::class, 'removeStock']);
+    Route::post('variants/stock/adjust', [ProductVariantController::class, 'adjustStock']);
+    Route::post('variants/stock/transfer', [ProductVariantController::class, 'transferStock']);
 });

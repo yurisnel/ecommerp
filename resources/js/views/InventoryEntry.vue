@@ -28,8 +28,8 @@
             <!-- Left Column: Primary Selection -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- Step 1: Product & Source -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between rounded-t-2xl">
                         <div class="flex items-center gap-2">
                             <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold">1</span>
                             <h3 class="font-bold text-gray-900">Product & Vendor</h3>
@@ -38,7 +38,7 @@
                     <div class="p-6 space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Product Search -->
-                            <div class="relative z-30">
+                            <div v-show="!isProductLocked" class="relative z-30">
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Product *</label>
                                 <Combobox v-model="selectedProduct" @update:modelValue="onProductSelect" :disabled="isProductLocked">
                                     <div class="relative">
@@ -51,7 +51,7 @@
                                                 :disabled="isProductLocked"
                                             />
                                             <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                                <Icon icon="mdi:chevron-up-down" class="h-5 w-5 text-gray-400" aria-hidden="true" />
                                             </ComboboxButton>
                                         </div>
                                         <TransitionRoot leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
@@ -67,7 +67,39 @@
                                                                 <div class="text-[10px] text-gray-400 font-mono">{{ product.sku }}</div>
                                                             </div>
                                                         </div>
-                                                        <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600"><CheckIcon class="h-5 w-5" /></span>
+                                                        <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600"><Icon icon="mdi:check" class="h-5 w-5" /></span>
+                                                    </li>
+                                                </ComboboxOption>
+                                            </ComboboxOptions>
+                                        </TransitionRoot>
+                                    </div>
+                                </Combobox>
+                            </div>
+
+                            <!-- Variant Selection (Conditional) -->
+                            <div v-if="selectedProduct?.variants?.length > 0" class="relative z-30">
+                                <label class="block text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Variation *</label>
+                                <Combobox v-model="selectedVariant" @update:modelValue="onVariantSelect">
+                                    <div class="relative">
+                                        <div class="relative w-full cursor-default overflow-hidden rounded-xl bg-indigo-50/50 text-left border border-indigo-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+                                            <ComboboxInput
+                                                class="w-full border-none py-3 pl-4 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 bg-transparent"
+                                                :displayValue="(variant) => variant?.name + (variant?.sku ? ` (${variant.sku})` : '')"
+                                                placeholder="Select variation..."
+                                            />
+                                            <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                <Icon icon="mdi:chevron-up-down" class="h-5 w-5 text-indigo-400" />
+                                            </ComboboxButton>
+                                        </div>
+                                        <TransitionRoot leave="transition ease-in duration-100">
+                                            <ComboboxOptions class="absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black/5 focus:outline-none sm:text-sm z-50">
+                                                <ComboboxOption v-for="variant in selectedProduct.variants" :key="variant.id" :value="variant" v-slot="{ selected, active }">
+                                                    <li class="relative cursor-pointer select-none py-3 pl-10 pr-4" :class="active ? 'bg-indigo-50 text-indigo-900' : 'text-gray-900'">
+                                                        <div class="flex items-center justify-between gap-3">
+                                                            <div class="font-bold truncate" :class="{ 'text-indigo-600': selected }">{{ variant.name }}</div>
+                                                            <div class="text-[10px] text-gray-400 font-mono">{{ variant.sku }}</div>
+                                                        </div>
+                                                        <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600"><Icon icon="mdi:check" class="h-5 w-5" /></span>
                                                     </li>
                                                 </ComboboxOption>
                                             </ComboboxOptions>
@@ -110,8 +142,8 @@
                 </div>
 
                 <!-- Step 2: Logistics & Pricing -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between rounded-t-2xl">
                          <div class="flex items-center gap-2">
                             <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold">2</span>
                             <h3 class="font-bold text-gray-900">Quantities & Pricing</h3>
@@ -238,22 +270,22 @@
                         <div class="p-6 space-y-4">
                             <div>
                                 <h4 class="text-indigo-200 text-[10px] font-bold uppercase tracking-widest">Selección Activa</h4>
-                                <p class="text-xl font-bold truncate">{{ detailedProductData.product.name }}</p>
-                                <p class="text-indigo-300 text-xs font-mono mt-1">{{ detailedProductData.product.sku }}</p>
+                                <p class="text-xl font-bold truncate">{{ selectedVariant ? selectedVariant.name : detailedProductData.product.name }}</p>
+                                <p class="text-indigo-300 text-xs font-mono mt-1">{{ selectedVariant ? selectedVariant.sku : detailedProductData.product.sku }}</p>
                             </div>
                             
                             <div class="flex items-center justify-between p-3 bg-white/10 rounded-xl">
                                 <div class="text-center flex-1 border-r border-white/10">
                                     <p class="text-[10px] text-indigo-300 uppercase font-bold">Stock Actual</p>
-                                    <p class="text-lg font-bold">{{ detailedProductData.total_quantity || 0 }}</p>
+                                    <p class="text-lg font-bold">{{ currentStockDisplay }}</p>
                                 </div>
                                 <div class="text-center flex-1">
                                     <p class="text-[10px] text-indigo-300 uppercase font-bold">Last Unit Cost</p>
-                                    <p class="text-lg font-bold">${{ Number(detailedProductData.product.latest_entry?.unit_cost || 0).toFixed(2) }}</p>
+                                    <p class="text-lg font-bold">${{ lastCostDisplay }}</p>
                                 </div>
                                  <div class="text-center flex-1">
                                     <p class="text-[10px] text-indigo-300 uppercase font-bold">Last Price</p>
-                                    <p class="text-lg font-bold">${{ Number(detailedProductData.product.latest_entry?.unit_price || 0).toFixed(2) }}</p>
+                                    <p class="text-lg font-bold">${{ lastPriceDisplay }}</p>
                                 </div>
                             </div>
                         </div>
@@ -355,9 +387,11 @@ const productResults = ref([]);
 const productQuery = ref('');
 const loadingProducts = ref(false);
 const selectedProduct = ref(null);
+const selectedVariant = ref(null);
 
 const form = reactive({
     product_id: '',
+    product_variant_id: '',
     warehouse_id: '',
     supplier_id: '',
     quantity: 0,
@@ -396,8 +430,35 @@ const marginClass = computed(() => {
     return 'bg-red-50 text-red-700 border-red-200';
 });
 
+const currentStockDisplay = computed(() => {
+    if (!detailedProductData.value) return 0;
+    if (selectedVariant.value) {
+        // Find total stock for this variant across all warehouses
+        return detailedProductData.value.warehouses
+            .filter(w => w.product_variant_id === selectedVariant.value.id)
+            .reduce((sum, w) => sum + Number(w.quantity), 0);
+    }
+    return detailedProductData.value.total_quantity || 0;
+});
+
+const lastCostDisplay = computed(() => {
+    if (!detailedProductData.value) return '0.00';
+    const cost = Number(detailedProductData.value.product.latest_entry?.unit_cost || 0);
+    return cost.toFixed(2);
+});
+
+const lastPriceDisplay = computed(() => {
+    if (!detailedProductData.value) return '0.00';
+    const price = Number(detailedProductData.value.product.latest_entry?.unit_price || 0);
+    return price.toFixed(2);
+});
+
 const isValid = computed(() => {
-    return form.product_id && form.warehouse_id && form.quantity > 0 && form.base_cost >= 0;
+    // If product has variants, variant_id is required (optional: user might want to stock base product?)
+    // Usually if variants exist, we should pick one.
+    const productHasVariants = selectedProduct.value?.variants?.length > 0;
+    const variantValid = productHasVariants ? !!form.product_variant_id : true;
+    return form.product_id && variantValid && form.warehouse_id && form.quantity > 0 && form.base_cost >= 0;
 });
 
 const filteredWarehouses = computed(() => {
@@ -420,9 +481,15 @@ const loadDependencies = async () => {
         ]);
         warehouses.value = warehousesRes.data.data.data || warehousesRes.data.data; 
         suppliers.value = suppliersRes.data.data.data || suppliersRes.data.data;
+        
         if (warehouses.value.length > 0) {
             selectedWarehouse.value = warehouses.value[0];
             form.warehouse_id = warehouses.value[0].id;
+        }
+        
+        if (suppliers.value.length > 0 && !form.supplier_id) {
+            selectedSupplier.value = suppliers.value[0];
+            form.supplier_id = suppliers.value[0].id;
         }
     } catch (error) {
         console.error('Error loading dependencies:', error);
@@ -457,7 +524,7 @@ const fetchProductDetails = async (productId) => {
             form.additional_costs_value = latestEntry.additional_costs_value || 0;
             form.additional_costs_percent = latestEntry.additional_costs_percent || 0;
             form.unit_price = latestEntry.unit_price;
-            form.entry_date = latestEntry.entry_date  || '';
+            form.entry_date = latestEntry.entry_date ? latestEntry.entry_date.replace(' ', 'T').slice(0, 16) : new Date().toISOString().slice(0, 16);
             form.batch_number = latestEntry.batch_number || '';
 
             warehouses.value.filter(w => w.id === latestEntry.warehouse_id).forEach(w => {
@@ -477,6 +544,11 @@ const fetchProductDetails = async (productId) => {
     }
 };
 
+const fetchVariantDetails = async (variantId) => {
+    // Optional: fetch specific variant inventory status if needed
+    // For now we can rely on what's in detailedProductData or add a specific call
+};
+
 const fetchEntryDetails = async (id) => {
     loadingDetails.value = true;
     try {
@@ -492,13 +564,18 @@ const fetchEntryDetails = async (id) => {
         form.additional_costs_value = entry.additional_costs_value || 0;
         form.additional_costs_percent = entry.additional_costs_percent || 0;
         form.unit_price = entry.unit_price;
-        form.entry_date = entry.entry_date;
+        form.entry_date = entry.entry_date ? entry.entry_date.replace(' ', 'T').slice(0, 16) : new Date().toISOString().slice(0, 16);
         form.batch_number = entry.batch_number || '';
         form.notes = entry.notes || '';
         
         selectedProduct.value = entry.product;
         selectedWarehouse.value = entry.warehouse;
         selectedSupplier.value = entry.supplier;
+        
+        if (entry.product_variant_id && entry.variant) {
+            selectedVariant.value = entry.variant;
+            form.product_variant_id = entry.product_variant_id;
+        }
         
         // Update product preview sidebar
         fetchProductDetails(entry.product_id);
@@ -513,10 +590,21 @@ const fetchEntryDetails = async (id) => {
 const onProductSelect = (product) => {
     if (!product) {
         detailedProductData.value = null;
+        selectedVariant.value = null;
+        form.product_variant_id = '';
         return;
     }
     form.product_id = product.id;
+    form.product_variant_id = '';
+    selectedVariant.value = null;
     fetchProductDetails(product.id);
+};
+
+const onVariantSelect = (variant) => {
+    form.product_variant_id = variant ? variant.id : '';
+    if (variant) {
+        // Optionar: update costs/prices based on variant's last entry if we had that info
+    }
 };
 
 const onWarehouseSelect = (w) => form.warehouse_id = w ? w.id : '';
@@ -525,11 +613,17 @@ const onSupplierSelect = (s) => form.supplier_id = s ? s.id : '';
 const submitEntry = async () => {
     submitting.value = true;
     try {
+        // Format entry_date for backend (convert from datetime-local format to database format)
+        const formData = {
+            ...form,
+            entry_date: form.entry_date ? form.entry_date.replace('T', ' ') : null
+        };
+        
         if (isEdit.value) {
-            await api.put(`/inventory/entries/${route.params.id}`, form);
+            await api.put(`/inventory/entries/${route.params.id}`, formData);
             swal.success('Product entry updated successfully!');
         } else {
-            await api.post('/inventory/entry', form);
+            await api.post('/inventory/entry', formData);
             swal.success('Product entry created successfully!');
         }
         router.push({ name: 'Inventory' });
@@ -548,8 +642,20 @@ onMounted(async () => {
         const prodId = route.query.product_id;
         const response = await api.get(`/products/${prodId}`);
         
-        selectedProduct.value = response.data.data;
+        const product = response.data.data;
+        selectedProduct.value = product;
         form.product_id = prodId;
+        
+        // Handle variant pre-selection if present in query
+        if (route.query.product_variant_id && product.variants) {
+            const variantId = route.query.product_variant_id;
+            const variant = product.variants.find(v => v.id == variantId);
+            if (variant) {
+                selectedVariant.value = variant;
+                form.product_variant_id = variant.id;
+            }
+        }
+        
         fetchProductDetails(prodId);
     }
 });

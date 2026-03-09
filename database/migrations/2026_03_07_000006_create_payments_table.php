@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sales_order_id')->constrained()->onDelete('cascade');
-            $table->enum('payment_method', ['cash', 'credit_card', 'debit_card', 'bank_transfer', 'paypal', 'other']);
+            $table->foreignId('payment_method_id')->nullable()->constrained()->onDelete('set null');
             $table->decimal('amount', 12, 2);
             $table->enum('status', ['pending', 'completed', 'failed', 'refunded'])->default('pending');
             $table->string('transaction_id', 100)->nullable(); // External payment gateway transaction ID

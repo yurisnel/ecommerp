@@ -38,6 +38,7 @@
                     <tr>
                         <th class="text-center py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-15">Entry</th>
                         <th v-if="!productId" class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
+                        <th v-else class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Variation</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-24">Qty</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-28">Cost</th>
@@ -76,9 +77,16 @@
                                 >
                                 <div>
                                     <div class="font-medium text-gray-900">{{ entry.product?.name }}</div>
-                                    <div class="text-xs text-gray-500">{{ entry.product?.sku }}</div>
+                                    <div v-if="entry.variant" class="text-xs font-semibold text-indigo-600">
+                                        {{ entry.variant.name }}
+                                        <span class="text-gray-400 font-normal">({{ entry.variant.sku }})</span>
+                                    </div>
+                                    <div v-else class="text-xs text-gray-500">{{ entry.product?.sku }}</div>
                                 </div>
                             </div>
+                        </td>
+                        <td v-else class="px-4 py-4 text-sm font-medium text-indigo-600">
+                            {{ entry.variant?.name || 'Base Product' }}
                         </td>
                         <td class="px-4 py-4 text-sm">  
                             <div v-if="entry.supplier" class="text-gray-700">{{ entry.supplier.name }}</div>

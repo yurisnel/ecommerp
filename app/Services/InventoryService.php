@@ -33,13 +33,14 @@ class InventoryService
             $additionalPercent = $data['additional_costs_percent'] ?? 0;
             $additionalFromPercent = $baseCost * ($additionalPercent / 100);
             $data['unit_cost'] = $baseCost + $additionalValue + $additionalFromPercent;
-            
+
             // Create product entry
             $entry = ProductEntry::create($data);
 
             // Create stock movement (IN) - use stored unit cost
             $this->createStockMovement([
                 'product_id' => $data['product_id'],
+                'product_variant_id' => $data['product_variant_id'] ?? null,
                 'warehouse_id' => $data['warehouse_id'],
                 'product_entry_id' => $entry->id,
                 'type' => 'in',
@@ -58,12 +59,13 @@ class InventoryService
                 $data['product_id'],
                 $data['warehouse_id'],
                 $data['quantity'],
-                'add'
+                'add',
+                $data['product_variant_id'] ?? null
             );
 
             DB::commit();
 
-            return $entry->fresh(['product', 'supplier', 'warehouse']);
+            return $entry->fresh(['product', 'variant', 'supplier', 'warehouse']);
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
@@ -78,7 +80,7 @@ class InventoryService
      */
     public function getProductEntry(int $id): ProductEntry
     {
-        return ProductEntry::with(['product', 'supplier', 'warehouse', 'creator'])->findOrFail($id);
+        return ProductEntry::with(['product', 'product.variants', 'variant', 'supplier', 'warehouse', 'creator'])->findOrFail($id);
     }
 
     /**
@@ -100,20 +102,21 @@ class InventoryService
             $additionalPercent = $data['additional_costs_percent'] ?? 0;
             $additionalFromPercent = $baseCost * ($additionalPercent / 100);
             $data['unit_cost'] = $baseCost + $additionalValue + $additionalFromPercent;
-            
+
             $entry = ProductEntry::findOrFail($id);
             $oldQuantity = $entry->quantity;
             $oldWarehouseId = $entry->warehouse_id;
             $oldProductId = $entry->product_id;
+            $oldVariantId = $entry->product_variant_id;
             $entry->update($data);
 
-            // If quantity, product or warehouse changed, we need to adjust inventory
-            if ($oldQuantity != $entry->quantity || $oldWarehouseId != $entry->warehouse_id || $oldProductId != $entry->product_id) {
+            // If quantity, product, variant or warehouse changed, we need to adjust inventory
+            if ($oldQuantity != $entry->quantity || $oldWarehouseId != $entry->warehouse_id || $oldProductId != $entry->product_id || $oldVariantId != $entry->product_variant_id) {
                 // 1. Revert old inventory
-                $this->updateInventory($oldProductId, $oldWarehouseId, $oldQuantity, 'subtract');
+                $this->updateInventory($oldProductId, $oldWarehouseId, $oldQuantity, 'subtract', $oldVariantId);
 
                 // 2. Apply new inventory
-                $this->updateInventory($entry->product_id, $entry->warehouse_id, $entry->quantity, 'add');
+                $this->updateInventory($entry->product_id, $entry->warehouse_id, $entry->quantity, 'add', $entry->product_variant_id);
             }
 
             // Update associated stock movement
@@ -124,6 +127,7 @@ class InventoryService
             if ($movement) {
                 $movement->update([
                     'product_id' => $entry->product_id,
+                    'product_variant_id' => $entry->product_variant_id,
                     'warehouse_id' => $entry->warehouse_id,
                     'quantity' => $entry->quantity,
                     'unit_cost' => $entry->unit_cost, // Stored calculated value
@@ -135,7 +139,7 @@ class InventoryService
 
             DB::commit();
 
-            return $entry->fresh(['product', 'supplier', 'warehouse']);
+            return $entry->fresh(['product', 'variant', 'supplier', 'warehouse']);
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
@@ -159,13 +163,14 @@ class InventoryService
             // First check if we have enough stock to revert
             $inventory = Inventory::where('product_id', $entry->product_id)
                 ->where('warehouse_id', $entry->warehouse_id)
+                ->where('product_variant_id', $entry->product_variant_id)
                 ->first();
 
             if (!$inventory || $inventory->available_quantity < $entry->quantity) {
                 throw new Exception("Cannot delete entry: Insufficient stock in warehouse to revert the quantity.");
             }
 
-            $this->updateInventory($entry->product_id, $entry->warehouse_id, $entry->quantity, 'subtract');
+            $this->updateInventory($entry->product_id, $entry->warehouse_id, $entry->quantity, 'subtract', $entry->product_variant_id);
 
             // Delete associated stock movements
             StockMovement::where('product_entry_id', $entry->id)->delete();
@@ -198,13 +203,15 @@ class InventoryService
      * @param int $warehouseId
      * @param float $quantity
      * @param string $operation (add|subtract)
+     * @param int|null $variantId
      * @return Inventory
      */
-    public function updateInventory(int $productId, int $warehouseId, float $quantity, string $operation = 'add'): Inventory
+    public function updateInventory(int $productId, int $warehouseId, float $quantity, string $operation = 'add', ?int $variantId = null): Inventory
     {
         $inventory = Inventory::firstOrCreate(
             [
                 'product_id' => $productId,
+                'product_variant_id' => $variantId,
                 'warehouse_id' => $warehouseId,
             ],
             [
@@ -234,14 +241,19 @@ class InventoryService
      * @return Inventory
      * @throws Exception
      */
-    public function reserveInventory(int $productId, int $warehouseId, float $quantity): Inventory
+    public function reserveInventory(int $productId, int $warehouseId, float $quantity, ?int $variantId = null): Inventory
     {
         $inventory = Inventory::where('product_id', $productId)
             ->where('warehouse_id', $warehouseId)
+            ->where('product_variant_id', $variantId)
             ->first();
 
         if (!$inventory || $inventory->available_quantity < $quantity) {
-            throw new Exception("Insufficient inventory for product ID {$productId}");
+            $message = "Insufficient inventory for product ID {$productId}";
+            if ($variantId) {
+                $message .= " (Variant ID {$variantId})";
+            }
+            throw new Exception($message);
         }
 
         $inventory->reserved_quantity += $quantity;
@@ -258,10 +270,11 @@ class InventoryService
      * @param float $quantity
      * @return Inventory
      */
-    public function releaseReservedInventory(int $productId, int $warehouseId, float $quantity): Inventory
+    public function releaseReservedInventory(int $productId, int $warehouseId, float $quantity, ?int $variantId = null): Inventory
     {
         $inventory = Inventory::where('product_id', $productId)
             ->where('warehouse_id', $warehouseId)
+            ->where('product_variant_id', $variantId)
             ->first();
 
         if ($inventory) {
@@ -286,6 +299,7 @@ class InventoryService
         try {
             $movement = $this->createStockMovement([
                 'product_id' => $data['product_id'],
+                'product_variant_id' => $data['product_variant_id'] ?? null,
                 'warehouse_id' => $data['warehouse_id'],
                 'type' => 'adjustment',
                 'quantity' => abs($data['quantity']),
@@ -299,7 +313,8 @@ class InventoryService
                 $data['product_id'],
                 $data['warehouse_id'],
                 abs($data['quantity']),
-                $operation
+                $operation,
+                $data['product_variant_id'] ?? null
             );
 
             DB::commit();
@@ -326,6 +341,7 @@ class InventoryService
             // Check if source warehouse has enough stock
             $sourceInventory = Inventory::where('product_id', $data['product_id'])
                 ->where('warehouse_id', $data['from_warehouse_id'])
+                ->where('product_variant_id', $data['product_variant_id'] ?? null)
                 ->first();
 
             if (!$sourceInventory || $sourceInventory->available_quantity < $data['quantity']) {
@@ -335,6 +351,7 @@ class InventoryService
             // Create transfer movement
             $movement = $this->createStockMovement([
                 'product_id' => $data['product_id'],
+                'product_variant_id' => $data['product_variant_id'] ?? null,
                 'warehouse_id' => $data['from_warehouse_id'],
                 'type' => 'transfer',
                 'quantity' => $data['quantity'],
@@ -350,7 +367,8 @@ class InventoryService
                 $data['product_id'],
                 $data['from_warehouse_id'],
                 $data['quantity'],
-                'subtract'
+                'subtract',
+                $data['product_variant_id'] ?? null
             );
 
             // Add to destination warehouse
@@ -358,7 +376,8 @@ class InventoryService
                 $data['product_id'],
                 $data['to_warehouse_id'],
                 $data['quantity'],
-                'add'
+                'add',
+                $data['product_variant_id'] ?? null
             );
 
             DB::commit();
@@ -378,7 +397,7 @@ class InventoryService
      */
     public function getProductInventoryStatus(int $productId): array
     {
-        $product = Product::with(['inventory.warehouse', 'defaultImage', 'latestEntry'])->findOrFail($productId);
+        $product = Product::with(['inventory.warehouse', 'inventory.variant', 'defaultImage', 'latestEntry', 'variants'])->findOrFail($productId);
 
         $totalQuantity = $product->inventory->sum('quantity');
         $totalReserved = $product->inventory->sum('reserved_quantity');
@@ -513,7 +532,7 @@ class InventoryService
      */
     public function getProductEntries(int $perPage = 15, array $filters = [])
     {
-        $query = ProductEntry::with(['product', 'product.defaultImage', 'supplier', 'warehouse'])->orderBy('id', 'desc');
+        $query = ProductEntry::with(['product', 'product.defaultImage', 'variant', 'supplier', 'warehouse'])->orderBy('id', 'desc');
 
         if (isset($filters['search']) && $filters['search']) {
             $search = $filters['search'];
@@ -529,6 +548,10 @@ class InventoryService
 
         if (isset($filters['product_id'])) {
             $query->where('product_id', $filters['product_id']);
+        }
+
+        if (isset($filters['product_variant_id'])) {
+            $query->where('product_variant_id', $filters['product_variant_id']);
         }
 
         if (isset($filters['warehouse_id'])) {
@@ -569,7 +592,7 @@ class InventoryService
      */
     public function getStockMovements(int $perPage = 15, array $filters = [])
     {
-        $query = StockMovement::with(['product','product.defaultImage', 'warehouse', 'fromWarehouse', 'toWarehouse'])->orderBy('id', 'desc');
+        $query = StockMovement::with(['product', 'product.defaultImage', 'variant', 'warehouse', 'fromWarehouse', 'toWarehouse'])->orderBy('id', 'desc');
 
         if (isset($filters['search']) && $filters['search']) {
             $search = $filters['search'];
@@ -589,6 +612,10 @@ class InventoryService
 
         if (isset($filters['product_id'])) {
             $query->where('product_id', $filters['product_id']);
+        }
+
+        if (isset($filters['product_variant_id'])) {
+            $query->where('product_variant_id', $filters['product_variant_id']);
         }
 
         if (isset($filters['warehouse_id'])) {
@@ -676,4 +703,3 @@ class InventoryService
         ];
     }
 }
-
