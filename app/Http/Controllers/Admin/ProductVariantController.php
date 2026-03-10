@@ -41,7 +41,8 @@ class ProductVariantController extends Controller
         $variants = $this->variantService->getByProductId($productId, [
             'attributeValues',
             'attributeValues.attribute',
-            'inventory'
+            'inventory',
+            'product'
         ]);
 
         return response()->json([
