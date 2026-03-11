@@ -155,7 +155,8 @@
                                 >
                                     <div class="flex justify-between items-start">
                                         <div>
-                                            <div class="font-bold text-gray-900">{{ entry.product?.name }}</div>
+                                            <div v-if="!entry.variant" class="font-bold text-gray-900">{{ entry.product?.name }}</div>
+                                            <div v-else class="font-bold text-gray-900">{{ entry.variant?.name }}</div>
                                             <div class="text-xs text-gray-500 font-mono">{{ entry.product?.sku }}</div>
                                             <div class="mt-1 flex gap-2">
                                                 <span class="text-[10px] bg-gray-100 px-1 rounded">Batch: {{ entry.batch_number || 'N/A' }}</span>

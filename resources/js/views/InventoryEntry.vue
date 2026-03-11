@@ -320,13 +320,18 @@
                         </div>
   
                         <div class="pt-4 border-t border-gray-100 flex justify-between items-center font-bold">
-                            <span class="text-gray-900 text-xs">Total Profit Estimated</span>
-                            <span class="text-indigo-600">${{ (form.quantity * (form.unit_price - calculatedUnitCost )).toFixed(2) }}</span>
+                            <span class="text-gray-900 text-xs">Total Sales Price</span>
+                            <span class="text-indigo-600">${{ (form.quantity * form.unit_price).toFixed(2) }}</span>
                         </div>
 
                         <div class="pt-4 border-t border-gray-100 flex justify-between items-center font-bold">
-                            <span class="text-gray-900 text-xs">Total Investment</span>
-                            <span class="text-indigo-600">${{ (form.quantity * calculatedUnitCost).toFixed(2) }}</span>
+                            <span class="text-gray-900 text-xs">Total Purchase Cost</span>
+                            <span class="text-indigo-600">- ${{ (form.quantity * calculatedUnitCost).toFixed(2) }}</span>
+                        </div>
+
+                         <div class="pt-4 border-t border-gray-100 flex justify-between items-center font-bold">
+                            <span class="text-gray-900 text-xs">Total Profit Estimated </span>
+                            <span class="text-indigo-600">${{ (form.quantity * (form.unit_price - calculatedUnitCost )).toFixed(2) }}</span>
                         </div>
 
                     </div>

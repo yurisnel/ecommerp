@@ -435,6 +435,9 @@ const variantForm = reactive({
 watch(
   () => ({ ...variantForm.attribute_values }),
   () => {
+    
+    if(editingVariantId.value === null) return; // Don't auto-generate when editing an existing variant
+
     const selectedValues = Object.entries(variantForm.attribute_values)
       .filter(([, valueId]) => valueId !== null)
       .map(([attrId, valueId]) => {
