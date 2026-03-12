@@ -23,7 +23,7 @@ class ProductController extends BaseController
         if (!$product) {
             return response()->json([
                 'success' => false,
-                'message' => 'Product not found'
+                'message' => __('api.product_not_found')
             ], 404);
         }
 

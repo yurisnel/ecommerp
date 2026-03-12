@@ -2,15 +2,15 @@
     <div class="space-y-6">
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Customers</h1>
-                <p class="text-gray-500 text-sm mt-1">Manage your customer database and viewing their history.</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ t('customers.title') }}</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ t('customers.description') }}</p>
             </div>
             <router-link 
                 :to="{ name: 'CustomerCreate' }"
                 class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
             >
                 <Icon icon="mdi:plus" class="h-5 w-5" />
-                <span>New Customer</span>
+                <span>{{ t('customers.newCustomer') }}</span>
             </router-link>
         </div>
 
@@ -44,14 +44,14 @@
                     <router-link 
                         :to="{ name: 'CustomerEdit', params: { id: item.id } }"
                         class="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                        title="Edit Customer"
+                        :title="t('common.editTitle')"
                     >
                         <Icon icon="mdi:pencil" class="h-5 w-5" />
                     </router-link>
                     <button 
                         @click="deleteCustomer(item.id)"
                         class="p-1 text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                        title="Delete Customer"
+                        :title="t('common.deleteTitle')"
                     >
                         <Icon icon="mdi:trash-can" class="h-5 w-5" />
                     </button>
@@ -62,14 +62,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import api from '../axios';
 import DataTable from '../components/DataTable.vue';
 import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
 import swal from '../utils/swal';
 
-const loading = ref(false);
+const { t } = useI18n();
+const loading = ref([]);
 const items = ref([]);
 const filters = reactive({
     search: ''
@@ -81,14 +83,15 @@ const pagination = ref({
     total: 0
 });
 
-const columns = [
-    { key: 'image', label: 'Image' },
-    { key: 'customer_number', label: 'ID' },
-    { key: 'name', label: 'Name' },
-    { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Phone' },
-    { key: 'customer_group', label: 'Group' }
-];
+const columns = computed(() =>[
+    { key: 'image', label: t('common.image') },
+    { key: 'customer_number', label: t('common.id') },
+    { key: 'name', label: t('common.name') },
+    { key: 'email', label: t('common.email') },
+    { key: 'phone', label: t('common.phone') },
+    { key: 'customer_group', label: t('customers.group') }
+]);
+
 
 const fetchData = async (page = 1) => {
     loading.value = true;
@@ -120,7 +123,10 @@ const handleSearch = debounce((val) => {
 }, 300);
 
 const deleteCustomer = async (id) => {
-    const result = await swal.confirm('Are you sure you want to delete this customer?', 'Delete Customer');
+    const result = await swal.confirm(
+        t('common.deleteConfirm', { item: t('customers.customer').toLowerCase() }),
+        t('common.deleteTitle')
+    );
     if (!result.isConfirmed) return;
     
     try {
@@ -128,7 +134,7 @@ const deleteCustomer = async (id) => {
         fetchData(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting customer:', error);
-        swal.error(error.response?.data?.message || 'Failed to delete customer');
+        swal.error(error.response?.data?.message || t('common.deleteError', { item: t('customers.customer').toLowerCase() }));
     }
 };
 

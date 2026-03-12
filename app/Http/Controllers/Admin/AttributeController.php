@@ -28,7 +28,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attributes retrieved successfully',
+            'message' => __('api.attributes_retrieved_successfully'),
             'data' => $attributes
         ]);
     }
@@ -42,7 +42,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attributes retrieved successfully',
+            'message' => __('api.attributes_retrieved_successfully'),
             'data' => $attributes
         ]);
     }
@@ -56,7 +56,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Filterable attributes retrieved successfully',
+            'message' => __('api.filterable_attributes_retrieved_successfully'),
             'data' => $attributes
         ]);
     }
@@ -71,13 +71,13 @@ class AttributeController extends Controller
         if (!$attribute) {
             return response()->json([
                 'success' => false,
-                'message' => 'Attribute not found'
+                'message' => __('api.attribute_not_found')
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Attribute retrieved successfully',
+            'message' => __('api.attribute_retrieved_successfully'),
             'data' => $attribute
         ]);
     }
@@ -106,7 +106,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attribute created successfully',
+            'message' => __('api.attribute_created_successfully'),
             'data' => $attribute
         ], 201);
     }
@@ -135,7 +135,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attribute updated successfully',
+            'message' => __('api.attribute_updated_successfully'),
             'data' => $attribute
         ]);
     }
@@ -149,7 +149,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attribute deleted successfully'
+            'message' => __('api.attribute_deleted_successfully')
         ]);
     }
 
@@ -164,7 +164,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attribute values retrieved successfully',
+            'message' => __('api.attribute_values_retrieved_successfully'),
             'data' => $values
         ]);
     }
@@ -186,7 +186,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attribute value created successfully',
+            'message' => __('api.attribute_value_created_successfully'),
             'data' => $value
         ], 201);
     }
@@ -208,7 +208,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attribute value updated successfully',
+            'message' => __('api.attribute_value_updated_successfully'),
             'data' => $value
         ]);
     }
@@ -222,7 +222,7 @@ class AttributeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Attribute value deleted successfully'
+            'message' => __('api.attribute_value_deleted_successfully')
         ]);
     }
 }

@@ -54,7 +54,7 @@ class UserController extends BaseController
 
         return response()->json([
             'success' => true,
-            'message' => 'User created successfully',
+            'message' => __('api.user_created_successfully'),
             'data' => $user->load('roles')
         ], 201);
     }
@@ -81,7 +81,7 @@ class UserController extends BaseController
 
         return response()->json([
             'success' => true,
-            'message' => 'User updated successfully',
+            'message' => __('api.user_updated_successfully'),
             'data' => $user->load('roles')
         ]);
     }

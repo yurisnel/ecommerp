@@ -2,15 +2,15 @@
     <div class="space-y-6">
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Sales Orders</h1>
-                <p class="text-gray-500 text-sm mt-1">Track and manage customer orders and fulfillment status.</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ t('orders.title') }}</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ t('orders.trackAndManageOrders') }}</p>
             </div>
             <router-link 
                 :to="{ name: 'OrderCreate' }"
                 class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
             >
                 <Icon icon="mdi:plus" class="h-5 w-5" />
-                <span>New Order</span>
+                <span>{{ t('orders.newOrder') }}</span>
             </router-link>
         </div>
 
@@ -20,7 +20,7 @@
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">{{ t('orders.totalOrders') }}</p>
                         <p class="text-lg font-bold text-gray-900">{{ stats.count_orders }}</p>
                     </div>
                     <div class="p-2 bg-amber-50 rounded-lg">
@@ -31,7 +31,7 @@
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Sales</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">{{ t('orders.totalSales') }}</p>
                         <p class="text-lg font-bold text-emerald-600">${{ stats.total_sales_amount.toFixed(2) }}</p>
                     </div>
                     <div class="p-2 bg-emerald-50 rounded-lg">
@@ -43,7 +43,7 @@
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Investment</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">{{ t('orders.investment') }}</p>
                         <p class="text-lg font-bold text-blue-600">${{ stats.total_cost_amount.toFixed(2) }}</p>
                     </div>
                     <div class="p-2 bg-blue-50 rounded-lg">
@@ -55,7 +55,7 @@
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Profit</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">{{ t('orders.profit') }}</p>
                         <p class="text-lg font-bold text-blue-600">${{ stats.total_profit_amount.toFixed(2) }}</p>
                     </div>
                     <div class="p-2 bg-blue-50 rounded-lg">
@@ -72,8 +72,8 @@
                 @click="showFilters = !showFilters"
             >
                 <Icon :icon="showFilters ? 'mdi:chevron-down' : 'mdi:chevron-right'" class="h-5 w-5 text-gray-500" />
-                <span class="font-medium text-gray-700">Filters</span>
-                <span v-if="hasActiveFilters" class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full">Active</span>
+                <span class="font-medium text-gray-700">{{ t('orders.filters') }}</span>
+                <span v-if="hasActiveFilters" class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full">{{ t('orders.active') }}</span>
             </div>
             <div v-show="showFilters" class="flex flex-wrap gap-4 items-center">
                 <div class="relative w-full md:w-64">
@@ -81,7 +81,7 @@
                     <input
                         v-model="filters.search"
                         type="text"
-                        placeholder="Search orders..."
+                        :placeholder="t('orders.searchOrders')"
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                         @input="debouncedFetch"
                     >
@@ -92,7 +92,7 @@
                     @change="fetchData(1)"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 min-w-[180px]"
                 >
-                    <option :value="null">All Customers</option>
+                    <option :value="null">{{ t('orders.allCustomers') }}</option>
                     <option v-for="customer in customers" :key="customer.id" :value="customer.id">
                         {{ customer.name }}
                     </option>
@@ -103,7 +103,7 @@
                     @change="fetchData(1)"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 min-w-[150px]"
                 >
-                    <option :value="null">All Statuses</option>
+                    <option :value="null">{{ t('orders.allStatuses') }}</option>
                     <option v-for="status in orderStatuses" :key="status.id" :value="status.id">
                         {{ status.name }}
                     </option>
@@ -114,7 +114,7 @@
                     @change="fetchData(1)"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 min-w-[150px]"
                 >
-                    <option :value="null">All Channels</option>
+                    <option :value="null">{{ t('orders.allChannels') }}</option>
                     <option v-for="channel in salesChannels" :key="channel.id" :value="channel.id">
                         {{ channel.name }}
                     </option>
@@ -125,7 +125,7 @@
                     @change="fetchData(1)"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 min-w-[150px]"
                 >
-                    <option :value="null">All Payments</option>
+                    <option :value="null">{{ t('orders.allPayments') }}</option>
                     <option v-for="pm in paymentMethods" :key="pm.id" :value="pm.id">
                         {{ pm.name }}
                     </option>
@@ -134,7 +134,7 @@
                 <input
                     v-model="filters.date_start"
                     type="date"
-                    placeholder="Start date"
+                    :placeholder="t('orders.startDate')"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
                     @change="fetchData(1)"
                 >
@@ -142,7 +142,7 @@
                 <input
                     v-model="filters.date_end"
                     type="date"
-                    placeholder="End date"
+                    :placeholder="t('orders.endDate')"
                     class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
                     @change="fetchData(1)"
                 >
@@ -152,7 +152,7 @@
                     @click="clearFilters"
                     class="text-sm text-red-600 hover:text-red-800 font-medium"
                 >
-                    Clear Filters
+                    {{ t('orders.clearFilters') }}
                 </button>
             </div>
         </div>
@@ -183,7 +183,7 @@
                     <span class="text-gray-900 font-medium">{{ item.customer.name }}</span>
                     <span class="text-[10px] text-gray-400 uppercase tracking-wider">{{ item.customer.customer_number }}</span>
                 </div>
-                <span v-else class="text-gray-400 italic">No customer</span>
+                <span v-else class="text-gray-400 italic">{{ t('orders.noCustomer') }}</span>
             </template>
 
             <template #payment_method="{ item }">
@@ -198,7 +198,7 @@
                         ${{ getTotalPaid(item.payments).toFixed(2) }}                       
                     </div>
                 </div>
-                <span v-else class="text-red-500 text-sm italic font-medium">Not paid</span>
+                <span v-else class="text-red-500 text-sm italic font-medium">{{ t('orders.notPaid') }}</span>
             </template>
 
             <template #status="{ item }">
@@ -209,7 +209,7 @@
                 >
                     {{ item.order_status.name }}
                 </span>
-                <span v-else class="text-gray-400 text-[10px]">No status</span>
+                <span v-else class="text-gray-400 text-[10px]">{{ t('orders.noStatus') }}</span>
             </template>
 
             <template #total="{ item }">
@@ -221,7 +221,7 @@
                     <router-link 
                         :to="{ name: 'OrderView', params: { id: item.id } }"
                         class="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                        title="View Details"
+                        :title="t('common.viewDetails')"
                     >
                         <Icon icon="mdi:eye" class="h-5 w-5" />
                     </router-link>
@@ -233,10 +233,13 @@
 
 <script setup>
 import { ref, onMounted, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import api from '../axios';
 import DataTable from '../components/DataTable.vue';
 import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
+
+const { t } = useI18n();
 
 const loading = ref(false);
 const showFilters = ref(false);
@@ -269,14 +272,14 @@ const pagination = ref({
     total: 0
 });
 
-const columns = [
-    { key: 'order_number', label: 'Order #' }, 
-    { key: 'customer', label: 'Customer' },
-    { key: 'payment_method', label: 'Payment' },
-    { key: 'total', label: 'Total' },
-    { key: 'status', label: 'Status' },
-    { key: 'order_date', label: 'Date' },
-];
+const columns = computed(() => [
+    { key: 'order_number', label: t('orders.orderNumber') }, 
+    { key: 'customer', label: t('orders.customer') },
+    { key: 'payment_method', label: t('orders.payment') },
+    { key: 'total', label: t('orders.total') },
+    { key: 'status', label: t('common.status') },
+    { key: 'order_date', label: t('common.date') },
+]);
 
 const hasActiveFilters = computed(() => {
     return filters.customer_id || filters.status || filters.sales_channel_id || 

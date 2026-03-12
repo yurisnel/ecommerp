@@ -1,4 +1,5 @@
 import axios from 'axios';
+import i18n from './i18n/index';
 
 const api = axios.create({
     baseURL: '/api/v1',
@@ -14,6 +15,10 @@ api.interceptors.request.use(config => {
     // if (token) {
     //     config.headers.Authorization = `Bearer ${token}`;
     // }
+
+    // Set Accept-Language header from i18n locale
+    config.headers['Accept-Language'] = i18n.global.locale.value || 'en';
+
     return config;
 });
 

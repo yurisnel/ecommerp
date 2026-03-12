@@ -2,14 +2,14 @@
     <div class="space-y-6">
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">{{ isEditing ? 'Edit Employee' : 'New Employee' }}</h1>
-                <p class="text-gray-500 text-sm mt-1">Create or update employee records.</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ isEditing ? t('employees.editEmployee') : t('employees.newEmployee') }}</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ t('employees.descriptionText') }}</p>
             </div>
             <div class="flex gap-3">
-                <button @click="$router.back()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button @click="$router.back()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">{{ t('common.cancel') }}</button>
                 <button @click="submit" :disabled="submitting" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <span v-if="submitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    <span>{{ isEditing ? 'Update Employee' : 'Create Employee' }}</span>
+                    <span>{{ isEditing ? t('employees.updateEmployee') : t('employees.createEmployee') }}</span>
                 </button>
             </div>
         </div>
@@ -17,69 +17,69 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="md:col-span-2 space-y-6">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Basic Information</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">{{ t('employees.basicInformation') }}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Employee Number</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('employees.employeeNumber') }}</label>
                             <input v-model="form.employee_number" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.user') }}</label>
                             <select v-model="form.user_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                <option :value="null">Select user</option>
+                                <option :value="null">{{ t('employees.selectUser') }}</option>
                                 <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }} ({{ u.email }})</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('employees.department') }}</label>
                             <select v-model="form.department_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                <option :value="null">None</option>
+                                <option :value="null">{{ t('common.none') }}</option>
                                 <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('employees.position') }}</label>
                             <input v-model="form.position" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Hire Date</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('employees.hireDate') }}</label>
                             <input v-model="form.hire_date" type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Termination Date</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('employees.terminationDate') }}</label>
                             <input v-model="form.termination_date" type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Salary</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('employees.salary') }}</label>
                             <input v-model="form.salary" type="number" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Employment Type</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('employees.employmentType') }}</label>
                             <select v-model="form.employment_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="full_time">Full time</option>
-                                <option value="part_time">Part time</option>
-                                <option value="contract">Contract</option>
-                                <option value="intern">Intern</option>
+                                <option value="full_time">{{ t('employees.fullTime') }}</option>
+                                <option value="part_time">{{ t('employees.partTime') }}</option>
+                                <option value="contract">{{ t('employees.contract') }}</option>
+                                <option value="intern">{{ t('employees.intern') }}</option>
                             </select>
                         </div>
 
                         <div class="col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('employees.emergencyContact') }}</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <input v-model="form.emergency_contact_name" placeholder="Name" class="px-4 py-2 border border-gray-300 rounded-lg">
-                                <input v-model="form.emergency_contact_phone" placeholder="Phone" class="px-4 py-2 border border-gray-300 rounded-lg">
+                                <input v-model="form.emergency_contact_name" :placeholder="t('employees.contactName')" class="px-4 py-2 border border-gray-300 rounded-lg">
+                                <input v-model="form.emergency_contact_phone" :placeholder="t('employees.contactPhone')" class="px-4 py-2 border border-gray-300 rounded-lg">
                             </div>
                         </div>
 
                         <div class="col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.notes') }}</label>
                             <textarea v-model="form.notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                         </div>
                     </div>
@@ -89,20 +89,20 @@
             <div class="space-y-6">
                 <!-- Photo card (compact, lateral) -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center">
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">Photo</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">{{ t('employees.photo') }}</h3>
                     <div class="h-24 w-24 rounded-full overflow-hidden border border-gray-200 mb-3">
-                        <img v-if="form.image" :src="form.image" :alt="form.position || 'Employee image'" class="object-cover h-full w-full" @error="onImageError" />
+                        <img v-if="form.image" :src="form.image" :alt="form.position || t('employees.employeeImage')" class="object-cover h-full w-full" @error="onImageError" />
                         <div v-else class="h-full w-full bg-gray-100 flex items-center justify-center">
                             <i class="fas fa-image text-gray-300"></i>
                         </div>
                     </div>
 
                     <div class="flex gap-2 mb-2">
-                        <button @click="showUploader = !showUploader" type="button" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded">Editar</button>
-                        <button v-if="form.image" @click="confirmRemoveImage" type="button" class="px-3 py-1 text-sm border rounded">Eliminar</button>
+                        <button @click="showUploader = !showUploader" type="button" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded">{{ t('common.edit') }}</button>
+                        <button v-if="form.image" @click="confirmRemoveImage" type="button" class="px-3 py-1 text-sm border rounded">{{ t('common.remove') }}</button>
                     </div>
 
-                    <p class="text-xs text-gray-400 text-center">Recomendado 400×400 • ≤2MB</p>
+                    <p class="text-xs text-gray-400 text-center">{{ t('customers.recommendedSize') }}</p>
 
                     <div v-show="showUploader" class="w-full mt-3">
                         <ImageUploader v-model="form.image" folder="employees" />
@@ -110,12 +110,12 @@
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Settings</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ t('common.settings') }}</h3>
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <label class="text-sm font-medium text-gray-700">Active Status</label>
-                                <p class="text-xs text-gray-500">Enable or disable this employee.</p>
+                                <label class="text-sm font-medium text-gray-700">{{ t('common.status') }}</label>
+                                <p class="text-xs text-gray-500">{{ t('common.enableOrDisable') }}</p>
                             </div>
                             <Switch v-model="statusActive" :class="statusActive ? 'bg-indigo-600' : 'bg-gray-200'" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 <span :class="statusActive ? 'translate-x-6' : 'translate-x-1'" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
@@ -131,6 +131,7 @@
 <script setup>
 import { ref, onMounted, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import api from '../axios';
 import ImageUploader from '../components/ImageUploader.vue';
 import swal from '../utils/swal';
@@ -138,6 +139,7 @@ import { Switch } from '@headlessui/vue';
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 const isEditing = ref(!!route.params.id);
 const submitting = ref(false);
@@ -159,7 +161,7 @@ const onImageError = (event) => {
 };
 
 const confirmRemoveImage = async () => {
-    const result = await swal.confirm('Are you sure you want to remove the image?', 'Remove Image');
+    const result = await swal.confirm(t('employees.confirmRemoveImage'), t('employees.removeImage'));
     if (!result.isConfirmed) return;
     form.image = '';
 };
@@ -213,7 +215,7 @@ const fetchEmployee = async () => {
         statusActive.value = emp.status === 'active';
     } catch (error) {
         console.error('Error fetching employee:', error);
-        swal.error('Failed to load employee details.');
+        swal.error(t('employees.failedToLoadEmployee'));
     }
 };
 
@@ -226,7 +228,7 @@ const submit = async () => {
         router.push({ name: 'Employees' });
     } catch (error) {
         if (error.response?.status === 422) Object.assign(errors, error.response.data.errors || {});
-        else { console.error('Error saving employee:', error); swal.error('Failed to save employee'); }
+        else { console.error('Error saving employee:', error); swal.error(t('employees.failedToSaveEmployee')); }
     } finally { submitting.value = false; }
 };
 

@@ -3,15 +3,15 @@
         <!-- Header -->
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">{{ isEditing ? 'Edit Customer' : 'New Customer' }}</h1>
-                <p class="text-gray-500 text-sm mt-1">Manage customer profiles and contact information.</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ isEditing ? t('customers.editCustomer') : t('customers.newCustomer') }}</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ t('customers.descriptionText') }}</p>
             </div>
             <div class="flex gap-3">
                 <button 
                     @click="$router.back()" 
                     class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                    Cancel
+                    {{ t('common.cancel') }}
                 </button>
                 <button 
                     @click="submit" 
@@ -19,7 +19,7 @@
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                     <span v-if="submitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    <span>{{ isEditing ? 'Update Customer' : 'Create Customer' }}</span>
+                    <span>{{ isEditing ? t('customers.updateCustomer') : t('customers.createCustomer') }}</span>
                 </button>
             </div>
         </div>
@@ -48,11 +48,11 @@
                 <!-- Main Info -->
                 <div class="md:col-span-2 space-y-6">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Basic Information</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">{{ t('customers.basicInformation') }}</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Full Name / Company Name <span class="text-red-500">*</span>
+                                    {{ t('customers.fullNameCompany') }} <span class="text-red-500">*</span>
                                 </label>
                                 <input 
                                     v-model="form.name" 
@@ -64,7 +64,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.email') }}</label>
                                 <input 
                                     v-model="form.email" 
                                     type="email"
@@ -73,7 +73,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.phone') }}</label>
                                 <input 
                                     v-model="form.phone" 
                                     type="text"
@@ -82,7 +82,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tax ID / RUC / NIT</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('customers.taxIdRucNit') }}</label>
                                 <input 
                                     v-model="form.tax_id" 
                                     type="text"
@@ -91,13 +91,25 @@
                             </div>
 
                             <div class="col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.notes') }}</label>
                                 <textarea 
                                     v-model="form.notes"
                                     rows="3"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 ></textarea>
                             </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('customers.customerGroup') }}</label>
+                                <select 
+                                    v-model="form.customer_group_id" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                >
+                                    <option :value="null">{{ t('common.none') }}</option>
+                                    <option v-for="group in groups" :key="group.id" :value="group.id">{{ group.name }}</option>
+                                </select>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -106,20 +118,20 @@
                 <div class="space-y-6">
                     <!-- Photo card (compact, lateral) -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center">
-                        <h3 class="text-lg font-medium text-gray-900 mb-3">Photo</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-3">{{ t('common.image') }}</h3>
                         <div class="h-24 w-24 rounded-full overflow-hidden border border-gray-200 mb-3">
-                            <img v-if="form.image" :src="form.image" :alt="form.name || 'Customer image'" class="object-cover h-full w-full" @error="onImageError" />
+                            <img v-if="form.image" :src="form.image" :alt="form.name || t('customers.customerImage')" class="object-cover h-full w-full" @error="onImageError" />
                             <div v-else class="h-full w-full bg-gray-100 flex items-center justify-center">
                                 <i class="fas fa-image text-gray-300"></i>
                             </div>
                         </div>
 
                         <div class="flex gap-2 mb-2">
-                            <button @click="showUploader = !showUploader" type="button" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded">Editar</button>
-                            <button v-if="form.image" @click="confirmRemoveImage" type="button" class="px-3 py-1 text-sm border rounded">Eliminar</button>
+                            <button @click="showUploader = !showUploader" type="button" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded">{{ t('common.edit') }}</button>
+                            <button v-if="form.image" @click="confirmRemoveImage" type="button" class="px-3 py-1 text-sm border rounded">{{ t('common.remove') }}</button>
                         </div>
 
-                        <p class="text-xs text-gray-400 text-center">Recomendado 400×400 • ≤2MB</p>
+                        <p class="text-xs text-gray-400 text-center">{{ t('customers.recommendedSize') }}</p>
 
                         <div v-show="showUploader" class="w-full mt-3">
                             <ImageUploader v-model="form.image" folder="customers" />
@@ -127,12 +139,12 @@
                     </div>
 
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Status & Group</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">{{ t('common.settings') }}</h3>
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <label class="text-sm font-medium text-gray-700">Status</label>
-                                    <p class="text-xs text-gray-500">Enable or disable this customer.</p>
+                                    <label class="text-sm font-medium text-gray-700">{{ t('common.status') }}</label>
+                                    <p class="text-xs text-gray-500">{{ t('common.enableOrDisable') }}</p>
                                 </div>
                                 <Switch
                                     v-model="statusActive"
@@ -145,16 +157,6 @@
                                     />
                                 </Switch>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Customer Group</label>
-                                <select 
-                                    v-model="form.customer_group_id" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                >
-                                    <option :value="null">None</option>
-                                    <option v-for="group in groups" :key="group.id" :value="group.id">{{ group.name }}</option>
-                                </select>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -164,18 +166,18 @@
         <div v-show="activeTab === 'addresses' && isEditing">
              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-medium text-gray-900">Manage Addresses</h3>
+                    <h3 class="text-lg font-medium text-gray-900">{{ t('customers.manageAddresses') }}</h3>
                     <button 
                         @click="openAddressModal()"
                         class="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 font-semibold transition-colors"
                     >
-                        Add New Address
+                        {{ t('customers.addNewAddress') }}
                     </button>
                 </div>
 
-                <div v-if="loadingAddresses" class="py-8 text-center text-gray-500">Loading addresses...</div>
+                <div v-if="loadingAddresses" class="py-8 text-center text-gray-500">{{ t('customers.loadingAddresses') }}</div>
                 <div v-else-if="addresses.length === 0" class="py-12 border-2 border-dashed border-gray-100 rounded-xl text-center text-gray-400 italic">
-                    No addresses registered for this customer.
+                    {{ t('customers.noAddressesRegistered') }}
                 </div>
                 <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div 
@@ -185,8 +187,8 @@
                         :class="{'ring-2 ring-indigo-500 bg-indigo-50/30': addr.is_default}"
                     >
                         <div class="flex justify-between">
-                            <span class="text-xs font-bold uppercase tracking-wider text-gray-400">{{ addr.type }} Address</span>
-                            <span v-if="addr.is_default" class="text-[10px] font-bold bg-indigo-600 text-white px-1.5 py-0.5 rounded uppercase">Default</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-gray-400">{{ addr.type }} {{ t('common.address') }}</span>
+                            <span v-if="addr.is_default" class="text-[10px] font-bold bg-indigo-600 text-white px-1.5 py-0.5 rounded uppercase">{{ t('customers.defaultAddress') }}</span>
                         </div>
                         <div class="mt-2 text-sm text-gray-700">
                             <p class="font-medium text-gray-900">{{ addr.address_line1 }}</p>
@@ -195,9 +197,9 @@
                             <p class="text-xs text-gray-400 mt-1 uppercase">{{ addr.country }}</p>
                         </div>
                         <div class="mt-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button @click="openAddressModal(addr)" class="text-xs text-indigo-600 font-semibold">Edit</button>
-                            <button v-if="!addr.is_default" @click="setDefaultAddress(addr.id)" class="text-xs text-emerald-600 font-semibold">Set as Default</button>
-                            <button @click="deleteAddress(addr.id)" class="text-xs text-rose-600 font-semibold ml-auto">Delete</button>
+                            <button @click="openAddressModal(addr)" class="text-xs text-indigo-600 font-semibold">{{ t('common.edit') }}</button>
+                            <button v-if="!addr.is_default" @click="setDefaultAddress(addr.id)" class="text-xs text-emerald-600 font-semibold">{{ t('customers.setAsDefault') }}</button>
+                            <button @click="deleteAddress(addr.id)" class="text-xs text-rose-600 font-semibold ml-auto">{{ t('common.delete') }}</button>
                         </div>
                     </div>
                 </div>
@@ -209,6 +211,7 @@
 <script setup>
 import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import api from '../axios';
 import ImageUploader from '../components/ImageUploader.vue';
 import { Switch } from '@headlessui/vue';
@@ -216,6 +219,7 @@ import swal from '../utils/swal';
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 const isEditing = computed(() => route.params.id !== undefined);
 const submitting = ref(false);
@@ -223,8 +227,8 @@ const groups = ref([]);
 const errors = ref({});
 const activeTab = ref('general');
 const tabs = [
-    { id: 'general', name: 'General Information' },
-    { id: 'addresses', name: 'Addresses' }
+    { id: 'general', name: t('customers.generalInformation') },
+    { id: 'addresses', name: t('customers.addresses') }
 ];
 
 const form = reactive({
@@ -249,7 +253,7 @@ const onImageError = (event) => {
 };
 
 const confirmRemoveImage = async () => {
-    const result = await swal.confirm('Are you sure you want to remove the image?', 'Remove Image');
+    const result = await swal.confirm(t('customers.confirmRemoveImage'), t('customers.removeImage'));
     if (!result.isConfirmed) return;
     form.image = '';
 };
@@ -315,7 +319,7 @@ const submit = async () => {
             errors.value = error.response.data.errors;
         } else {
             console.error('Error saving customer:', error);
-            swal.error('Failed to save customer');
+            swal.error(t('customers.failedToSaveCustomer'));
         }
     } finally {
         submitting.value = false;
@@ -324,7 +328,7 @@ const submit = async () => {
 
 // Address actions (Stub for now, will implement properly if high priority)
 const openAddressModal = (addr = null) => {
-    swal.info('Address management feature is coming next!');
+    swal.info(t('customers.addressManagementComing'));
 };
 
 const setDefaultAddress = async (id) => {
@@ -337,7 +341,7 @@ const setDefaultAddress = async (id) => {
 };
 
 const deleteAddress = async (id) => {
-    const result = await swal.confirm('Are you sure you want to delete this address?', 'Delete Address');
+    const result = await swal.confirm(t('customers.deleteAddressConfirm'), t('customers.deleteAddress'));
     if (!result.isConfirmed) return;
     try {
         await api.delete(`/addresses/${id}`);

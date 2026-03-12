@@ -343,7 +343,7 @@
               <div class="flex justify-end items-center gap-2">
                 <router-link
                   :to="{
-                    name: 'InventoryEntry',
+                    name: 'ProductEntry',
                     query: {
                       product_id: props.productId,
                       product_variant_id: variant.id,

@@ -3,8 +3,8 @@
         <!-- Header -->
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">{{ isEditing ? 'Order ' + form.order_number : 'New Sales Order' }}</h1>
-                <p class="text-gray-500 text-sm mt-1">Create and manage customer purchase orders.</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ isEditing ? t('orders.order') + ' ' + form.order_number : t('orders.newSalesOrder') }}</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ t('orders.createAndManageOrders') }}</p>
             </div>
             <div class="flex gap-3">
              
@@ -14,7 +14,7 @@
                     class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                     <span v-if="submitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    <span>{{ isEditing ? 'Save Changes' : 'Create Order' }}</span>
+                    <span>{{ isEditing ? t('orders.saveChanges') : t('orders.createOrder') }}</span>
                 </button>
                 
 
@@ -22,7 +22,7 @@
                     @click="$router.push({ name: 'Orders' })" 
                     class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                    Back to List
+                    {{ t('orders.backToList') }}
                 </button>
                 
             </div>
@@ -35,11 +35,11 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
                         <Icon icon="mdi:account" class="h-5 w-5 text-gray-400" />
-                        Customer Information
+                        {{ t('orders.customerInformation') }}
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="relative">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('orders.customer') }} <span class="text-red-500">*</span></label>
                             
                             <Combobox v-model="selectedCustomer" :disabled="!canEdit">
                                 <div class="relative mt-1">
@@ -48,7 +48,7 @@
                                             class="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
                                             @change="queryCustomers($event.target.value)"
                                             :displayValue="(c) => c?.name || ''"
-                                            placeholder="Search customer..."
+                                            :placeholder="t('orders.searchCustomer')"
                                         />
                                         <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-2">
                                             <Icon icon="mdi:chevron-up-down" class="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -94,18 +94,18 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Sales Channel <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('orders.salesChannel') }} <span class="text-red-500">*</span></label>
                             <select 
                                 v-model="form.sales_channel_id" 
                                 :disabled="!canEdit"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             >
-                                <option :value="null">Select channel...</option>
+                                <option :value="null">{{ t('orders.selectChannel') }}</option>
                                 <option v-for="channel in channels" :key="channel.id" :value="channel.id">{{ channel.name }}</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Order Date <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('orders.orderDate') }} <span class="text-red-500">*</span></label>
                             <input 
                                 v-model="form.order_date" 
                                 type="datetime-local"
@@ -116,7 +116,7 @@
                     
                     <div v-if="form.warehouse_id" class="mt-4 p-3 bg-indigo-50 rounded-lg border border-indigo-100 flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-indigo-900 uppercase">Fulfillment Warehouse:</span>
+                            <span class="text-xs font-bold text-indigo-900 uppercase">{{ t('orders.fulfillmentWarehouse') }}</span>
                             <span class="text-sm font-medium text-indigo-700">{{ selectedWarehouseName }}</span>
                         </div>
                         <button 
@@ -132,7 +132,7 @@
                 <!-- Items Table -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="px-4 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                        <h3 class="text-lg font-medium text-gray-900">Order Items</h3>
+                        <h3 class="text-lg font-medium text-gray-900">{{ t('orders.orderItems') }}</h3>
                         <div v-if="canEdit" class="relative">
                             <div class="flex items-center gap-2">
                                 <span class="text-xs text-gray-500">Search Batch/Entry:</span>
@@ -176,17 +176,17 @@
                     <table class="w-full text-left">
                         <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
                             <tr>
-                                <th class="px-4 py-3">Product / Batch</th>
-                                <th class="px-4 py-3 text-center">Qty</th>
-                                <th class="px-4 py-3 text-right">Price</th>
-                                <th class="px-4 py-3 text-right">Discount</th>
-                                <th class="px-4 py-3 text-right">Subtotal</th>
-                                <th v-if="canEdit" class="px-4 py-3 text-center">Actions</th>
+                                <th class="px-4 py-3">{{ t('orders.productBatch') }}</th>
+                                <th class="px-4 py-3 text-center">{{ t('orders.qty') }}</th>
+                                <th class="px-4 py-3 text-right">{{ t('orders.price') }}</th>
+                                <th class="px-4 py-3 text-right">{{ t('orders.discount') }}</th>
+                                <th class="px-4 py-3 text-right">{{ t('orders.subtotal') }}</th>
+                                <th v-if="canEdit" class="px-4 py-3 text-center">{{ t('orders.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             <tr v-if="form.items.length === 0">
-                                <td colspan="6" class="px-4 py-12 text-center text-gray-400 italic font-medium">Search and select a product batch to start the order.</td>
+                                <td colspan="6" class="px-4 py-12 text-center text-gray-400 italic font-medium">{{ t('orders.searchAndSelectProduct') }}</td>
                             </tr>
                             <tr v-for="(item, index) in form.items" :key="index" class="hover:bg-gray-50 transition-colors">
                                 <td class="px-4 py-4">
@@ -242,7 +242,7 @@
                                     <button 
                                         @click="removeItem(index)" 
                                         class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-                                        :title="!canEdit ? 'Cannot remove items from non-editable orders' : 'Remove item'"
+                                        :title="!canEdit ? t('orders.cannotRemoveItems') : t('orders.removeItem')"
                                         :disabled="!canEdit"
                                     >
                                         <Icon icon="mdi:trash-can" class="h-5 w-5" />
@@ -255,11 +255,11 @@
 
                 <!-- Notes Section -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-xs font-bold text-gray-900 mb-4 uppercase tracking-wider">Order Notes</h3>
+                    <h3 class="text-xs font-bold text-gray-900 mb-4 uppercase tracking-wider">{{ t('orders.orderNotes') }}</h3>
                     <textarea 
                         v-model="form.notes"
                         rows="3"
-                        placeholder="Add any additional details or customer instructions..."
+                        :placeholder="t('orders.addAdditionalDetails')"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                         :disabled="!canEdit"
                     ></textarea>
@@ -271,18 +271,18 @@
                 <!-- Order Totals -->
                 <div class="bg-white rounded-xl shadow-base border border-gray-200 p-6">
                     <h3 class="text-lg font-bold text-gray-900 mb-6 border-b pb-2 flex justify-between items-center">
-                        Summary
-                        <span class="text-xs font-normal text-gray-400 uppercase tracking-widest">Pricing</span>
+                        {{ t('orders.summary') }}
+                        <span class="text-xs font-normal text-gray-400 uppercase tracking-widest">{{ t('orders.pricing') }}</span>
                     </h3>
                     
                     <div class="space-y-4">
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-500">Items Subtotal</span>
+                            <span class="text-gray-500">{{ t('orders.itemsSubtotal') }}</span>
                             <span class="font-bold text-gray-900">${{ totals.subtotal.toFixed(2) }}</span>
                         </div>
                         
                         <div class="flex justify-between items-center text-sm pt-2 border-t border-gray-50">
-                            <span class="text-gray-500">Global Discount</span>
+                            <span class="text-gray-500">{{ t('orders.globalDiscount') }}</span>
                             <div v-if="canEdit" class="flex items-center">
                                 <span class="text-[10px] text-gray-400 mr-1">$</span>
                                 <input 
@@ -295,7 +295,7 @@
                         </div>
 
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Taxes</span>
+                            <span class="text-gray-500">{{ t('orders.taxes') }}</span>
                             <div v-if="canEdit" class="flex items-center">
                                 <span class="text-[10px] text-gray-400 mr-1">%</span>
                                 <input 
@@ -308,7 +308,7 @@
                         </div>
 
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Shipping Fee</span>
+                            <span class="text-gray-500">{{ t('orders.shippingFee') }}</span>
                             <div v-if="canEdit" class="flex items-center">
                                 <span class="text-[10px] text-gray-400 mr-1">$</span>
                                 <input 
@@ -322,7 +322,7 @@
 
                         <div class="mt-8 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
                             <div class="flex justify-between items-end">
-                                <span class="text-xs font-bold text-indigo-900 uppercase">Final Total</span>
+                                <span class="text-xs font-bold text-indigo-900 uppercase">{{ t('orders.finalTotal') }}</span>
                                 <span class="text-3xl font-black text-indigo-600 tracking-tight">${{ totals.total.toFixed(2) }}</span>
                             </div>
                         </div>
@@ -337,19 +337,19 @@
                     </div>
                     <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2 relative z-10 flex items-center gap-2">
                         <Icon icon="mdi:credit-card" class="h-5 w-5 text-emerald-600" />
-                        Payments
+                        {{ t('orders.payments') }}
                     </h3>
                     <div class="space-y-4 text-sm relative z-10">
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-500">Order Total</span>
+                            <span class="text-gray-500">{{ t('orders.orderTotal') }}</span>
                             <span class="font-bold text-gray-900">${{ totals.total.toFixed(2) }}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-500">Paid</span>
+                            <span class="text-gray-500">{{ t('orders.paid') }}</span>
                             <span class="font-bold text-emerald-600">${{ paidAmount.toFixed(2) }}</span>
                         </div>
                         <div class="flex justify-between items-center border-t pt-2">
-                            <span class="text-gray-500">Balance</span>
+                            <span class="text-gray-500">{{ t('orders.balance') }}</span>
                             <span class="font-bold" :class="balanceAmount > 0 ? 'text-rose-600' : 'text-emerald-600'">${{ balanceAmount.toFixed(2) }}</span>
                         </div>
                         
@@ -359,13 +359,13 @@
                                 @click="showPaymentHistory = !showPaymentHistory"
                             >
                                 <Icon :icon="showPaymentHistory ? 'mdi:chevron-down' : 'mdi:chevron-right'" class="h-4 w-4" />
-                                Payment History
+                                {{ t('orders.paymentHistory') }}
                             </h4>
                             <ul v-show="showPaymentHistory" class="divide-y divide-gray-100 text-sm">
                                 <li v-for="payment in orderPayments" :key="payment.id" class="py-2 flex justify-between items-start">
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2">
-                                            <span class="font-medium">{{ payment.payment_method?.name || 'Unknown' }}</span>
+                                            <span class="font-medium">{{ payment.payment_method?.name || t('orders.unknown') }}</span>
                                             <span v-if="payment.notes" class="relative group">
                                                 <Icon icon="mdi:information-outline" class="h-4 w-4 text-gray-400 hover:text-emerald-600 cursor-help" />
                                                 <span class="absolute left-0 bottom-full mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">{{ payment.notes }}</span>
@@ -387,7 +387,7 @@
                             class="w-full mt-4 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                         >
                             <Icon icon="mdi:plus" class="h-4 w-4" />
-                            Add Payment
+                            {{ t('orders.addPayment') }}
                         </button>
                     </div>
                 </div>
@@ -399,13 +399,13 @@
                     </div>                  
                     <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2 relative z-10 flex items-center gap-2">
                         <Icon icon="mdi:check-circle" class="h-5 w-5 text-emerald-600" />
-                        Order Status
+                        {{ t('orders.orderStatus') }}
                     </h3>
 
                     <div class="space-y-4 text-sm relative z-10">                    
                         <div class="mt-4">                            
                             <ul class="divide-y divide-gray-100 text-sm">
-                                <li v-if="!form.status_histories || form.status_histories.length === 0" class="py-2 text-gray-400 italic">No history yet.</li>
+                                <li v-if="!form.status_histories || form.status_histories.length === 0" class="py-2 text-gray-400 italic">{{ t('orders.noHistoryYet') }}</li>
                                 <li v-for="h in form.status_histories" :key="h.id" class="py-2 flex justify-between items-start">
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2">
@@ -416,7 +416,7 @@
                                                 <span class="absolute left-0 bottom-full mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">{{ h.notes }}</span>
                                             </span>
                                         </div>
-                                        <div class="text-xs text-gray-500">By: {{ h.changer?.name || 'System' }}</div>
+                                        <div class="text-xs text-gray-500">By: {{ h.changer?.name || t('orders.bySystem') }}</div>
                                     </div>
                                     <div class="text-xs text-gray-500">{{ formatDate(h.changed_at) }}</div>
                                 </li>
@@ -429,7 +429,7 @@
                             class="w-full mt-4 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                         >
                             <Icon icon="mdi:plus" class="h-4 w-4" />
-                            Add Status
+                            {{ t('orders.addStatus') }}
                         </button>
                         
                 </div>
@@ -444,31 +444,31 @@
             <div class="fixed inset-0 bg-black bg-opacity-50" @click="showStatusModal = false"></div>
             <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
                 <div class="p-6 border-b border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-900">Change Status</h3>
-                    <p class="text-sm text-gray-500 mt-1">Update the order status</p>
+                    <h3 class="text-lg font-bold text-gray-900">{{ t('orders.changeStatus') }}</h3>
+                    <p class="text-sm text-gray-500 mt-1">{{ t('orders.updateOrderStatus') }}</p>
                 </div>
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">New Status</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('orders.newStatus') }}</label>
                         <select v-model="statusForm.order_status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                            <option :value="null">Select status...</option>
+                            <option :value="null">{{ t('orders.selectStatus') }}</option>
                             <option v-for="s in validStatuses" :key="s.slug" :value="s.slug">{{ s.name }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status Date</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('orders.statusDate') }}</label>
                         <input v-model="statusForm.status_date" type="datetime-local" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                        <textarea v-model="statusForm.notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Reason for status change..."></textarea>
+                        <textarea v-model="statusForm.notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" :placeholder="t('orders.reasonForStatusChange')"></textarea>
                     </div>
                 </div>
                 <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
-                    <button @click="showStatusModal = false" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button @click="showStatusModal = false" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">{{ t('orders.cancel') }}</button>
                     <button @click="changeStatus" :disabled="submittingStatus" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2">
                         <span v-if="submittingStatus" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span>Save Status</span>
+                        <span>{{ t('orders.saveStatus') }}</span>
                     </button>
                 </div>
             </div>
@@ -481,23 +481,23 @@
             <div class="fixed inset-0 bg-black bg-opacity-50" @click="showPaymentModal = false"></div>
             <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
                 <div class="p-6 border-b border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-900">Record Payment</h3>
-                    <p class="text-sm text-gray-500 mt-1">Record a payment for this order</p>
+                    <h3 class="text-lg font-bold text-gray-900">{{ t('orders.recordPayment') }}</h3>
+                    <p class="text-sm text-gray-500 mt-1">{{ t('orders.recordPaymentForOrder') }}</p>
                 </div>
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('orders.paymentMethod') }}</label>
                         <select v-model="paymentForm.payment_method_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                            <option :value="null">Select payment method...</option>
+                            <option :value="null">{{ t('orders.selectPaymentMethod') }}</option>
                             <option v-for="pm in paymentMethods" :key="pm.id" :value="pm.id">{{ pm.name }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('orders.amount') }}</label>
                         <input v-model.number="paymentForm.amount" type="number" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="0.00">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('orders.paymentDate') }}</label>
                         <input v-model="paymentForm.payment_date" type="datetime-local" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
@@ -524,6 +524,7 @@
 <script setup>
 import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import api from '../axios';
 import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
@@ -539,6 +540,7 @@ import {
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 const isEditing = computed(() => route.params.id !== undefined);
 const submitting = ref(false);

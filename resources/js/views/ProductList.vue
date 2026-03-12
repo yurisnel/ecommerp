@@ -116,14 +116,14 @@
                             <router-link 
                                 :to="{ name: 'ProductEdit', params: { id: product.id } }"
                                 class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors inline-block"
-                                title="Edit Product Metadata"
+                                :title="t('common.editTitle')"
                             >
                                 <Icon icon="mdi:pencil" class="h-4 w-4" />
                             </router-link>
                             <button 
                                 @click="deleteProduct(product.id)"
                                 class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                                title="Delete Product"
+                                :title="t('common.deleteTitle')"
                             >
                                 <Icon icon="mdi:trash-can" class="h-4 w-4" />
                             </button>
@@ -160,10 +160,13 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Icon } from '@iconify/vue';
 import api from '../axios';
 import { debounce } from 'lodash';
 import swal from '../utils/swal';
+
+const { t } = useI18n();
 
 const products = ref([]);
 const loading = ref(false);
@@ -237,16 +240,19 @@ const debouncedFetch = debounce(() => {
 
 
 const deleteProduct = async (id) => {
-    const result = await swal.confirm('Are you sure you want to delete this product? This will also remove all its inventory records and images.', 'Delete Product');
+    const result = await swal.confirm(
+        t('common.deleteConfirm', { item: t('products.product').toLowerCase() }) + ' ' + t('common.actionNotReversible'),
+        t('common.deleteTitle')
+    );
     if (!result.isConfirmed) return;
 
     try {
         await api.delete(`/products/${id}`);
-        swal.success('Product deleted successfully');
+        swal.success(t('common.deleted'));
         fetchData(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting product:', error);
-        swal.error(error.response?.data?.message || 'Failed to delete product');
+        swal.error(error.response?.data?.message || t('common.deleteError', { item: t('products.product').toLowerCase() }));
     }
 };
 

@@ -28,7 +28,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Inventory summary retrieved successfully',
+            'message' => __('api.inventory_summary_retrieved_successfully'),
             'data' => $inventory
         ]);
     }
@@ -63,7 +63,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Product entry created successfully',
+            'message' => __('api.product_entry_created_successfully'),
             'data' => $entry
         ], 201);
     }
@@ -78,13 +78,13 @@ class InventoryController extends Controller
         if (!$entry) {
             return response()->json([
                 'success' => false,
-                'message' => 'Product entry not found'
+                'message' => __('api.product_entry_not_found')
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Product entry retrieved successfully',
+            'message' => __('api.product_entry_retrieved_successfully'),
             'data' => $entry
         ]);
     }
@@ -118,7 +118,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Product entry updated successfully',
+            'message' => __('api.product_entry_updated_successfully'),
             'data' => $entry
         ]);
     }
@@ -132,7 +132,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Product entry deleted successfully'
+            'message' => __('api.product_entry_deleted_successfully')
         ]);
     }
 
@@ -154,7 +154,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Inventory adjusted successfully',
+            'message' => __('api.inventory_adjusted_successfully'),
             'data' => $movement
         ]);
     }
@@ -178,7 +178,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock transferred successfully',
+            'message' => __('api.stock_transferred_successfully'),
             'data' => $movement
         ]);
     }
@@ -192,7 +192,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Product status retrieved successfully',
+            'message' => __('api.product_status_retrieved_successfully'),
             'data' => $status
         ]);
     }
@@ -208,7 +208,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Product entries retrieved successfully',
+            'message' => __('api.product_entries_retrieved_successfully'),
             'data' => $entries
         ]);
     }
@@ -225,7 +225,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock movements retrieved successfully',
+            'message' => __('api.stock_movements_retrieved_successfully'),
             'data' => $movements
         ]);
     }
@@ -240,7 +240,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Inventory statistics retrieved successfully',
+            'message' => __('api.inventory_statistics_retrieved_successfully'),
             'data' => $stats
         ]);
     }
@@ -255,7 +255,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock alerts retrieved successfully',
+            'message' => __('api.stock_alerts_retrieved_successfully'),
             'data' => $alerts
         ]);
     }

@@ -3,15 +3,15 @@
         <!-- Header -->
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">{{ isEditing ? 'Edit Supplier' : 'New Supplier' }}</h1>
-                <p class="text-gray-500 text-sm mt-1">Manage supplier profile and contact details.</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ isEditing ? t('suppliers.editSupplier') : t('suppliers.newSupplier') }}</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ t('suppliers.descriptionText') }}</p>
             </div>
             <div class="flex gap-3">
                 <button 
                     @click="$router.back()" 
                     class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                    Cancel
+                    {{ t('common.cancel') }}
                 </button>
                 <button 
                     @click="submit" 
@@ -19,7 +19,7 @@
                     class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <span v-if="submitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    <span>{{ isEditing ? 'Update Supplier' : 'Create Supplier' }}</span>
+                    <span>{{ isEditing ? t('suppliers.updateSupplier') : t('suppliers.createSupplier') }}</span>
                 </button>
             </div>
         </div>
@@ -29,11 +29,11 @@
             <div class="md:col-span-2 space-y-6">
                 <!-- Basic Info -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Business Information</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">{{ t('suppliers.businessInformation') }}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Supplier Name <span class="text-red-500">*</span>
+                                {{ t('suppliers.supplierName') }} <span class="text-red-500">*</span>
                             </label>
                             <input 
                                 v-model="form.name" 
@@ -46,7 +46,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('suppliers.companyName') }}</label>
                             <input 
                                 v-model="form.company_name" 
                                 type="text"
@@ -56,7 +56,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tax ID / RUC / NIT</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('suppliers.taxIdRucNit') }}</label>
                             <input 
                                 v-model="form.tax_id" 
                                 type="text"
@@ -70,10 +70,10 @@
 
                 <!-- Contact Info -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Contact Details</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">{{ t('suppliers.contactDetails') }}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('suppliers.emailAddress') }}</label>
                             <input 
                                 v-model="form.email" 
                                 type="email"
@@ -83,7 +83,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('suppliers.phoneNumber') }}</label>
                             <input 
                                 v-model="form.phone" 
                                 type="text"
@@ -92,7 +92,7 @@
                         </div>
 
                         <div class="col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.address') }}</label>
                             <textarea 
                                 v-model="form.address" 
                                 rows="2"
@@ -101,7 +101,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.city') }}</label>
                             <input 
                                 v-model="form.city" 
                                 type="text"
@@ -110,7 +110,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.country') }}</label>
                             <input 
                                 v-model="form.country" 
                                 type="text"
@@ -119,7 +119,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('common.notes') }}</label>
                             <textarea 
                             v-model="form.notes" 
                             rows="4"
@@ -136,20 +136,20 @@
             <div class="space-y-6">
                 <!-- Photo card (compact, lateral) -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center">
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">Photo</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">{{ t('suppliers.image') }}</h3>
                     <div class="h-24 w-24 rounded-full overflow-hidden border border-gray-200 mb-3">
-                        <img v-if="form.image" :src="form.image" :alt="form.name || 'Supplier image'" class="object-cover h-full w-full" @error="onImageError" />
+                        <img v-if="form.image" :src="form.image" :alt="form.name || t('suppliers.supplierImage')" class="object-cover h-full w-full" @error="onImageError" />
                         <div v-else class="h-full w-full bg-gray-100 flex items-center justify-center">
                             <i class="fas fa-image text-gray-300"></i>
                         </div>
                     </div>
 
                     <div class="flex gap-2 mb-2">
-                        <button @click="showUploader = !showUploader" type="button" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded">Editar</button>
-                        <button v-if="form.image" @click="confirmRemoveImage" type="button" class="px-3 py-1 text-sm border rounded">Eliminar</button>
+                        <button @click="showUploader = !showUploader" type="button" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded">{{ t('suppliers.edit') }}</button>
+                        <button v-if="form.image" @click="confirmRemoveImage" type="button" class="px-3 py-1 text-sm border rounded">{{ t('suppliers.remove') }}</button>
                     </div>
 
-                    <p class="text-xs text-gray-400 text-center">Recomendado 400×400 • ≤2MB</p>
+                    <p class="text-xs text-gray-400 text-center">{{ t('suppliers.recommendedSize') }}</p>
 
                     <div v-show="showUploader" class="w-full mt-3">
                         <ImageUploader v-model="form.image" folder="suppliers" />
@@ -158,13 +158,13 @@
 
                 <!-- Status & settings -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Settings</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ t('common.settings') }}</h3>
                     
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <label class="text-sm font-medium text-gray-700">Active Status</label>
-                                <p class="text-xs text-gray-500">Enable or disable this supplier.</p>
+                                <label class="text-sm font-medium text-gray-700">{{ t('common.status') }}</label>
+                                <p class="text-xs text-gray-500">{{ t('common.enableOrDisable') }}</p>
                             </div>
                             <Switch
                                 v-model="statusActive"
@@ -187,6 +187,7 @@
 <script setup>
 import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import api from '../axios';
 import { Switch } from '@headlessui/vue';
 import ImageUploader from '../components/ImageUploader.vue';
@@ -194,6 +195,7 @@ import swal from '../utils/swal';
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 const isEditing = computed(() => !!route.params.id);
 const submitting = ref(false);
@@ -229,7 +231,7 @@ const onImageError = (event) => {
 };
 
 const confirmRemoveImage = async () => {
-    const result = await swal.confirm('Are you sure you want to remove the image?', 'Remove Image');
+    const result = await swal.confirm(t('suppliers.confirmRemoveImage'), t('suppliers.removeImage'));
     if (!result.isConfirmed) return;
     form.image = '';
 };
@@ -256,13 +258,13 @@ const fetchSupplier = async () => {
         statusActive.value = supplier.status === 'active';
     } catch (error) {
         console.error('Error fetching supplier:', error);
-        swal.error('Failed to load supplier details.');
+        swal.error(t('suppliers.failedToLoadSupplier'));
     }
 };
 
 const submit = async () => {
     // Basic validation
-    errors.name = !form.name ? 'Name is required' : '';
+    errors.name = !form.name ? t('suppliers.nameIsRequired') : '';
     if (errors.name) return;
 
     submitting.value = true;
@@ -279,7 +281,7 @@ const submit = async () => {
         if (error.response?.data?.errors) {
             Object.assign(errors, error.response.data.errors);
         } else {
-            swal.error('Failed to save supplier.');
+            swal.error(t('suppliers.failedToSaveSupplier'));
         }
     } finally {
         submitting.value = false;

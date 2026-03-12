@@ -43,7 +43,7 @@ class RoleController extends BaseController
 
         return response()->json([
             'success' => true,
-            'message' => 'Role created successfully',
+            'message' => __('api.role_created_successfully'),
             'data' => $role->load('permissions')
         ], 201);
     }
@@ -64,7 +64,7 @@ class RoleController extends BaseController
 
         return response()->json([
             'success' => true,
-            'message' => 'Role updated successfully',
+            'message' => __('api.role_updated_successfully'),
             'data' => $role->load('permissions')
         ]);
     }

@@ -28,7 +28,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Variants retrieved successfully',
+            'message' => __('api.variants_retrieved_successfully'),
             'data' => $variants
         ]);
     }
@@ -47,7 +47,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Product variants retrieved successfully',
+            'message' => __('api.product_variants_retrieved_successfully'),
             'data' => $variants
         ]);
     }
@@ -68,13 +68,13 @@ class ProductVariantController extends Controller
         if (!$variant) {
             return response()->json([
                 'success' => false,
-                'message' => 'Variant not found'
+                'message' => __('api.variant_not_found')
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Variant retrieved successfully',
+            'message' => __('api.variant_retrieved_successfully'),
             'data' => $variant
         ]);
     }
@@ -102,7 +102,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Variant created successfully',
+            'message' => __('api.variant_created_successfully'),
             'data' => $variant
         ], 201);
     }
@@ -129,7 +129,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Variant updated successfully',
+            'message' => __('api.variant_updated_successfully'),
             'data' => $variant
         ]);
     }
@@ -143,7 +143,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Variant deleted successfully'
+            'message' => __('api.variant_deleted_successfully')
         ]);
     }
 
@@ -158,7 +158,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stocks retrieved successfully',
+            'message' => __('api.stocks_retrieved_successfully'),
             'data' => $stocks
         ]);
     }
@@ -172,7 +172,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Inventory status retrieved successfully',
+            'message' => __('api.inventory_status_retrieved_successfully'),
             'data' => $status
         ]);
     }
@@ -197,7 +197,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock added successfully',
+            'message' => __('api.stock_added_successfully'),
             'data' => $stock
         ], 201);
     }
@@ -219,7 +219,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock removed successfully',
+            'message' => __('api.stock_removed_successfully'),
             'data' => $stock
         ]);
     }
@@ -241,7 +241,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock adjusted successfully',
+            'message' => __('api.stock_adjusted_successfully'),
             'data' => $stock
         ]);
     }
@@ -264,7 +264,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock transferred successfully',
+            'message' => __('api.stock_transferred_successfully'),
             'data' => $result
         ]);
     }
@@ -279,7 +279,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Stock movements retrieved successfully',
+            'message' => __('api.stock_movements_retrieved_successfully'),
             'data' => $movements
         ]);
     }
@@ -302,7 +302,7 @@ class ProductVariantController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Variants generated successfully',
+            'message' => __('api.variants_generated_successfully'),
             'data' => $variants
         ]);
     }

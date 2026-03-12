@@ -67,7 +67,7 @@ class UploadController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'File uploaded successfully',
+                    'message' => __('api.file_uploaded_successfully'),
                     'url' => Storage::url($path),
                     'path' => $path,
                     'size' => Storage::disk('public')->size($path)
@@ -75,14 +75,14 @@ class UploadController extends Controller
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error processing image: ' . $e->getMessage()
+                    'message' => __('api.error_processing_image') . $e->getMessage()
                 ], 400);
             }
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'No file uploaded'
+            'message' => __('api.no_file_uploaded')
         ], 400);
     }
 

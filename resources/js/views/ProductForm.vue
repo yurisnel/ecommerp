@@ -382,7 +382,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
 // Components for tabs
 import ProductEntryHistory from './ProductEntryHistory.vue';
-import StockMovementLog from './StockMovementLog.vue';
+import StockMovementLog from './ProductMovementLog.vue';
 import ImageGallery from '../components/ImageGallery.vue';
 import ImageCropper from '../components/ImageCropper.vue';
 import ProductVariants from './ProductVariants.vue';

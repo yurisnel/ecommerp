@@ -6,7 +6,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- New Stock card -->
                 <router-link 
-                    :to="{ name: 'InventoryEntry' }"
+                    :to="{ name: 'ProductEntry' }"
                     class="group bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all text-left"
                 >
                     <div class="bg-indigo-50 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-600 transition-colors">

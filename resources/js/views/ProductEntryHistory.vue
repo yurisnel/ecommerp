@@ -23,7 +23,7 @@
                 </button>
 
                 <router-link 
-                    :to="{ name: 'InventoryEntry', query: { product_id: productId } }"
+                    :to="{ name: 'ProductEntry', query: { product_id: productId } }"
                     class="ml-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2 text-sm font-semibold shadow-sm"
                 >
                     <Icon icon="mdi:plus" class="h-4 w-4" />
@@ -110,7 +110,7 @@
                         </td>
                         <td class="text-right">
                             <router-link 
-                                :to="{ name: 'InventoryEntryEdit', params: { id: entry.id } }"
+                                :to="{ name: 'ProductEntryEdit', params: { id: entry.id } }"
                                 class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors inline-block"
                                 title="Edit Entry"
                             >

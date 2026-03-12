@@ -2,15 +2,15 @@
     <div class="space-y-6">
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Product Attributes</h1>
-                <p class="text-gray-500 text-sm mt-1">Manage product attributes like Color, Size, Material, etc.</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ t('attributes.title') }}</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ t('attributes.description') }}</p>
             </div>
             <router-link 
                 :to="{ name: 'AttributeCreate' }"
                 class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
             >
                 <Icon icon="mdi:plus" class="h-5 w-5" />
-                <span>New Attribute</span>
+                <span>{{ t('attributes.newAttribute') }}</span>
             </router-link>
         </div>
 
@@ -40,7 +40,7 @@
             </template>
 
             <template #values_count="{ item }">
-                <span class="text-gray-600">{{ item.values ? item.values.length : 0 }} values</span>
+                <span class="text-gray-600">{{ item.values ? item.values.length : 0 }} {{ t('common.values') }}</span>
             </template>
 
             <template #rowActions="{ item }">
@@ -48,14 +48,14 @@
                     <router-link 
                         :to="{ name: 'AttributeEdit', params: { id: item.id } }"
                         class="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                        title="Edit Attribute"
+                        :title="t('common.editTitle')"
                     >
                         <Icon icon="mdi:pencil" class="h-5 w-5" />
                     </router-link>
                     <button 
                         @click="deleteAttribute(item.id)"
                         class="p-1 text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                        title="Delete Attribute"
+                        :title="t('common.deleteTitle')"
                     >
                         <Icon icon="mdi:trash-can" class="h-5 w-5" />
                     </button>
@@ -66,12 +66,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import api from '../axios';
 import DataTable from '../components/DataTable.vue';
 import swal from '../utils/swal';
 import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
+
+const { t } = useI18n();
 
 const loading = ref(false);
 const items = ref([]);
@@ -85,11 +88,11 @@ const pagination = ref({
     total: 0
 });
 
-const columns = [
-    { key: 'name', label: 'Name' },
-    { key: 'type', label: 'Type' },
-    { key: 'values_count', label: 'Values' }
-];
+const columns = computed(() => [
+    { key: 'name', label: t('common.name') },
+    { key: 'type', label: t('attributes.type') },
+    { key: 'values_count', label: t('attributes.values') }
+]);
 
 const fetchData = async (page = 1) => {
     loading.value = true;
@@ -117,14 +120,17 @@ const handleSearch = debounce((val) => {
 }, 300);
 
 const deleteAttribute = async (id) => {
-    const result = await swal.confirm('Are you sure you want to delete this attribute?', 'Delete Attribute');
+    const result = await swal.confirm(
+        t('common.deleteConfirm', { item: t('attributes.attribute').toLowerCase() }),
+        t('common.deleteTitle')
+    );
     if (!result.isConfirmed) return;
     try {
         await api.delete(`/attributes/${id}`);
         fetchData(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting attribute:', error);
-        swal.error(error.response?.data?.message || 'Failed to delete attribute');
+        swal.error(error.response?.data?.message || t('common.deleteError', { item: t('attributes.attribute').toLowerCase() }));
     }
 };
 

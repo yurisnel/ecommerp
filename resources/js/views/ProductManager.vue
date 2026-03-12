@@ -173,10 +173,10 @@ import api from '../axios';
 import { debounce } from 'lodash';
 
 // Async components for better performance
-const InventorySummary = defineAsyncComponent(() => import('./InventorySummary.vue'));
+const ProductList = defineAsyncComponent(() => import('./ProductList.vue'));
 const ProductEntryHistory = defineAsyncComponent(() => import('./ProductEntryHistory.vue'));
-const StockMovementLog = defineAsyncComponent(() => import('./StockMovementLog.vue'));
-const InventoryOperations = defineAsyncComponent(() => import('./InventoryOperations.vue'));
+const ProductMovementLog = defineAsyncComponent(() => import('./ProductMovementLog.vue'));
+const ProductOperations = defineAsyncComponent(() => import('./ProductOperations.vue'));
 
 const activeTab = ref('summary');
 
@@ -189,11 +189,11 @@ const tabs = [
 
 const activeComponent = computed(() => {
     switch (activeTab.value) {
-        case 'summary': return InventorySummary;
+        case 'summary': return ProductList;
         case 'entries': return ProductEntryHistory;
-        case 'movements': return StockMovementLog;
-        case 'operations': return InventoryOperations;
-        default: return InventorySummary;
+        case 'movements': return ProductMovementLog;
+        case 'operations': return ProductOperations;
+        default: return ProductList;
     }
 });
 

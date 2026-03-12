@@ -2,15 +2,15 @@
     <div class="space-y-6">
         <div class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Employees</h1>
-                <p class="text-gray-500 text-sm mt-1">Manage employee records and assignments.</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ t('employees.title') }}</h1>
+                <p class="text-gray-500 text-sm mt-1">{{ t('employees.description') }}</p>
             </div>
             <router-link 
                 :to="{ name: 'EmployeeCreate' }"
                 class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
             >
                 <Icon icon="mdi:plus" class="h-5 w-5" />
-                <span>New Employee</span>
+                <span>{{ t('employees.newEmployee') }}</span>
             </router-link>
         </div>
 
@@ -42,14 +42,14 @@
                     <router-link 
                         :to="{ name: 'EmployeeEdit', params: { id: item.id } }"
                         class="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                        title="Edit Employee"
+                        :title="t('common.editTitle')"
                     >
                         <Icon icon="mdi:pencil" class="h-5 w-5" />
                     </router-link>
                     <button 
                         @click="deleteEmployee(item.id)"
                         class="p-1 text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                        title="Delete Employee"
+                        :title="t('common.deleteTitle')"
                     >
                         <Icon icon="mdi:trash-can" class="h-5 w-5" />
                     </button>
@@ -60,12 +60,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import api from '../axios';
 import DataTable from '../components/DataTable.vue';
 import swal from '../utils/swal';
 import { Icon } from '@iconify/vue';
 import { debounce } from 'lodash';
+
+const { t } = useI18n();
 
 const loading = ref(false);
 const items = ref([]);
@@ -79,14 +82,14 @@ const pagination = ref({
     total: 0
 });
 
-const columns = [
-    { key: 'image', label: 'Image' },
-    { key: 'employee_number', label: 'ID' },
-    { key: 'name', label: 'Name' },
-    { key: 'position', label: 'Position' },
-    { key: 'department', label: 'Department' },
-    { key: 'status', label: 'Status' }
-];
+const columns = computed(() => [
+    { key: 'image', label: t('common.image') },
+    { key: 'employee_number', label: t('employees.employeeNumber') },
+    { key: 'name', label: t('common.name') },
+    { key: 'position', label: t('employees.position') },
+    { key: 'department', label: t('employees.department') },
+    { key: 'status', label: t('common.status') }
+]);
 
 const fetchData = async (page = 1) => {
     loading.value = true;
@@ -114,14 +117,17 @@ const handleSearch = debounce((val) => {
 }, 300);
 
 const deleteEmployee = async (id) => {
-    const result = await swal.confirm('Are you sure you want to delete this employee?', 'Delete Employee');
+    const result = await swal.confirm(
+        t('common.deleteConfirm', { item: t('employees.employee').toLowerCase() }),
+        t('common.deleteTitle')
+    );
     if (!result.isConfirmed) return;
     try {
         await api.delete(`/employees/${id}`);
         fetchData(pagination.value.current_page);
     } catch (error) {
         console.error('Error deleting employee:', error);
-        swal.error(error.response?.data?.message || 'Failed to delete employee');
+        swal.error(error.response?.data?.message || t('common.deleteError', { item: t('employees.employee').toLowerCase() }));
     }
 };
 
